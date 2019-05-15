@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Squealer Roulette</title>
+	<meta charset="utf-8">
+	<script type="text/javascript">
+		var devs =["Pablo Pineda", "Walther Graciano", "Julian Noziglia", "Emmanuel Zarzosa", "Ezequiel Zink", "Fernando Gutierrez", "Ivan Müller", "Miguel Ramos", "Lucas Fiorini", "Rodrigo Salvay"];
+
+		function squealer(){
+			if (devs.length==0) {
+				devs.push("Pablo Pineda", "Walther Graciano", "Julian Noziglia", "Emmanuel Zarzosa", "Ezequiel Zink", "Fernando Gutierrez", "Ivan Müller", "Miguel Ramos", "Lucas Fiorini", "Rodrigo Salvay");
+			}
+			var num = Math.floor(Math.random()*devs.length)
+			var name = devs[num];
+			devs.splice(num, 1);
+			console.log(name);
+			var tbl = document.getElementById("myTable");
+			var row = tbl.insertRow();
+			var cell1 = row.insertCell();
+			var cell2 = row.insertCell();
+			cell1.innerHTML = Date();
+			cell2.innerHTML = name;
+		}
+	</script>
+
+	<style>
+		table{
+			width: 100%;
+		}
+		td{
+			border: 1px solid red;
+		}
+		.dev{
+			width: 50%;
+			padding-left: 10px;
+		}
+		.date{
+			width: 20%;
+			text-align: center;
+		}
+	</style>
+</head>
+
+<body>
+	<button onclick="squealer()">Click me</button>
+	<table id="myTable">
+		<tr>
+			<td class="date">Date</td>
+			<td class="dev">FlowDev</td>
+		</tr>
+	</table>
+</body>
+</html>
