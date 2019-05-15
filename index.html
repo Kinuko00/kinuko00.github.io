@@ -22,11 +22,10 @@
 			cell2.innerHTML = name;
 		}
 	</script>
-
 	<style>
 		table{
-			width: 55%;
 			margin-top: 20px;
+			width: 50%;
 		}
 		td{
 			border: 1px solid red;
@@ -40,16 +39,19 @@
 			width: 20%;
 			text-align: center;
 		}
+		@media (max-width: 800px) {
+			table { width:100%; }
+		}
 	</style>
 </head>
 
 <body>
-	<button onclick="squealer()"><b>SQUEALER GO</b></button>
+	<button onclick="squealer()"><b>SQUEALER</b></button>
 
 	<table id="myTable">
 		<tr>
-			<td class="date">Date</td>
-			<td class="dev">FlowDev</td>
+			<td class="date"><b>DATE</b></td>
+			<td class="dev"><b>FLOW DEV</b></td>
 		</tr>
 	</table>
 </body>
