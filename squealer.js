@@ -39,7 +39,7 @@ function squealer(){
 	lastDev.date = Date();
 	binData.history.push(lastDev);
 	
-	var update = new Request('https://api.jsonbin.io/b/5ce84f14f4df3819800d1fdc', {
+	var update = new Request('https://api.jsonbin.io/b/5cf6dc79d2127723845c0f05', {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
