@@ -23,7 +23,7 @@ fetch(request)
 
 function squealer(){
 	if (binData.devs.length==0) {
-		binData.devs.push("Pablo Pineda", "Walther Graciano", "Julian Noziglia", "Emmanuel Zarzosa", "Ezequiel Zink", "Fernando Gutierrez", "Ivan Müller", "Miguel Ramos", "Lucas Fiorini", "Rodrigo Salvay");
+		binData.devs.push("Pablo Pineda", "Walther Graciano", "Julian Noziglia", "Ezequiel Zink", "Fernando Gutierrez", "Ivan Müller", "Miguel Ramos", "Lucas Fiorini", "Rodrigo Salvay");
 	}
 	var num = Math.floor(Math.random()*binData.devs.length)
 	var name = binData.devs[num];
