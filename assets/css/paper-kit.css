@@ -3096,7 +3096,7 @@ select,
 textarea {
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
-  font-family: "Montserrat", "Helvetica", Arial, sans-serif;
+  font-family: "Poppins", "Helvetica", Arial, sans-serif;
   font-weight: 300;
 }
 
@@ -3198,7 +3198,7 @@ h3 .small {
 .footer-big h5,
 .footer-big h4,
 .media .media-heading {
-  font-family: "Montserrat", "Helvetica", Arial, sans-serif;
+  font-family: "Poppins", "Helvetica", Arial, sans-serif;
 }
 
 .title,
@@ -3325,7 +3325,7 @@ body {
   color: #66615b;
   font-size: 14px;
   font-weight: 300;
-  font-family: 'Montserrat', "Helvetica", Arial, sans-serif;
+  font-family: 'Poppins', "Helvetica", Arial, sans-serif;
 }
 
 a {
