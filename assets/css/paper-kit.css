@@ -25,6 +25,13 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
+.text-img {
+  width: 35%;
+  margin-left: 10px;
+  margin-bottom: 10px;
+  float: right;
+}
+
 .pbox1 {
   width: 32%;
   height: 150px;
@@ -3313,7 +3320,6 @@ blockquote small {
   margin-top: 30px;
   margin-bottom: 25px;
   min-height: 32px;
-  margin-left: 10px;
 }
 
 .title.text-center {
@@ -6933,7 +6939,7 @@ License - nucleoapp.com/license/
 }
 
 .section {
-  padding: 70px 0;
+  padding: 55px 0;
   position: relative;
   background-color: #FFFFFF;
 }
@@ -7113,8 +7119,11 @@ License - nucleoapp.com/license/
 ===================================================================*/
 
 @media (max-width: 767px) {
+  .text-img {
+    display: none;
+  }
   .main {
-    margin-left: 10px;
+    margin: 0 15px;
   }
   .pbox1 {
     width: 85%;
@@ -7753,7 +7762,7 @@ License - nucleoapp.com/license/
   }
   .navbar-collapse .navbar-nav>.nav-item>.nav-link {
     margin: 0px 0px;
-    color: #9A9A9A !important;
+    color: #FFF !important;
     text-transform: uppercase;
     font-weight: 600;
     font-size: 12px;
