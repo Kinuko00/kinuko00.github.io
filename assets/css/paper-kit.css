@@ -32,17 +32,28 @@
   float: right;
 }
 
+.pressImg {
+  height: 120px;
+  width: 100%;
+  background-size: cover;
+}
+
+.pbox1 p {
+  margin: 1em auto;
+  width: 90%;
+  font-size: 1em;
+}
+
 .pbox1 {
   width: 32%;
-  height: 150px;
+  height: 250px;
   margin-right: 1%;
   margin-top: 10px;
   border-radius: 25px;
   background-color: #0A79EB;
   color: white;
   float: left;
-  padding: 15px;
-  padding-top: 4%;
+  padding: 0 0 15px 0;
   color: white !important;
 }
 
@@ -7128,7 +7139,7 @@ License - nucleoapp.com/license/
   .pbox1 {
     width: 95%;
     margin: 5px auto;
-    height: 110px;
+    height: 230px;
     font-size: 1.2em;
   }
   #twitter-widget-0{
