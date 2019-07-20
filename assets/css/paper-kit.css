@@ -611,6 +611,13 @@
   }
 }
 
+@media (max-width: 768px) {
+  .col-md-8 {
+    flex: 0 0 95% !important;
+    max-width: 95% !important;
+  }
+}
+
 @media (min-width: 992px) {
   .bootstrap-datetimepicker-widget.dropdown-menu.timepicker-sbs {
     width: 38em;
@@ -3642,7 +3649,7 @@ License - nucleoapp.com/license/
 }
 
 /*------------------------
-	base class definition
+  base class definition
 -------------------------*/
 
 .nc-icon {
@@ -3815,7 +3822,7 @@ License - nucleoapp.com/license/
 }
 
 /*------------------------
-	font icons
+  font icons
 -------------------------*/
 
 .nc-air-baloon::before {
@@ -8119,23 +8126,6 @@ License - nucleoapp.com/license/
   }
 }
 
-@media (max-width: 414px) {
-  .page-header {
-      background-position: 1060px center;
-  }
-    .prensa-banner {
-      background-position: 900px 830px;
-  }
-}
-
-@media (max-width: 375px) {
-  .page-header {
-      background-position: 970px center;
-  }
-  .prensa-banner {
-      background-position: 900px 830px;
-  }
-}
 
 @media screen and (min-width: 767px) {
   .section-sections .section-cols {
@@ -8282,5 +8272,32 @@ License - nucleoapp.com/license/
   }
   .presentation-page .section-content .image-container .area-img {
     max-width: 170px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header {
+      background-position: 1500px center;
+  }
+    .prensa-banner {
+      background-position: 1200px 830px;
+  }
+}
+
+@media (max-width: 414px) {
+  .page-header {
+      background-position: 1060px center;
+  }
+    .prensa-banner {
+      background-position: 900px 830px;
+  }
+}
+
+@media (max-width: 375px) {
+  .page-header {
+      background-position: 970px center;
+  }
+  .prensa-banner {
+      background-position: 900px 830px;
   }
 }
