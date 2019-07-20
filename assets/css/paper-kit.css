@@ -616,6 +616,9 @@
     flex: 0 0 95% !important;
     max-width: 95% !important;
   }
+  .offset-md-2 {
+    margin-left: 10%;
+  }
 }
 
 @media (min-width: 992px) {
