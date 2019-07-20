@@ -24,6 +24,8 @@
  * Copyright 2012-2013 Mattia Larentis
  * http://www.apache.org/licenses/LICENSE-2.0
  */
+
+
 #lista5 {
   position: absolute;
   right: 20%;
@@ -32,8 +34,8 @@
 }
 
 .text-img {
-  width: 35%;
-  margin-left: 10px;
+  width: 40%;
+  margin-left: 1.5em;
   margin-bottom: 10px;
   float: right;
 }
@@ -6866,12 +6868,6 @@ License - nucleoapp.com/license/
   font-weight: 700;
   margin: 0;
   color: #FFFFFF;
-  background: #fbf8ec;
-  background: -moz-linear-gradient(top, #FFFFFF 35%, #4e6773 100%);
-  background: -webkit-linear-gradient(top, #FFFFFF 35%, #4e6773 100%);
-  background: -ms-linear-gradient(top, #FFFFFF 35%, #4e6773 100%);
-  background: linear-gradient(to bottom, #FFFFFF 35%, #4e6773 100%);
-  -webkit-background-clip: text;
 }
 
 .presentation-subtitle {
@@ -8123,6 +8119,24 @@ License - nucleoapp.com/license/
   }
 }
 
+@media (max-width: 414px) {
+  .page-header {
+      background-position: 1060px center;
+  }
+    .prensa-banner {
+      background-position: 900px 830px;
+  }
+}
+
+@media (max-width: 375px) {
+  .page-header {
+      background-position: 970px center;
+  }
+  .prensa-banner {
+      background-position: 900px 830px;
+  }
+}
+
 @media screen and (min-width: 767px) {
   .section-sections .section-cols {
     position: relative;
@@ -8270,5 +8284,3 @@ License - nucleoapp.com/license/
     max-width: 170px !important;
   }
 }
-
-/*# sourceMappingURL=kit-free.css.map */
