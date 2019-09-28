@@ -17,8 +17,9 @@ body {
 
 .price {
 	border-radius: 25px;
-	border: solid 1px #000;
+	border: solid 2px #000;
 	height: 100px;
+	background-color: white;
 }
 
 .col-7 {
