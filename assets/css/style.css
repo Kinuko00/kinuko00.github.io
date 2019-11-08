@@ -1,0 +1,218 @@
+#top1 {
+   background-image: url('../img/banner.jpg');
+}
+
+#top2 {
+   background-image: url('../img/agenda.jpg');
+}
+
+.agenda-banner {
+  background-repeat: no-repeat; 
+  background-size: cover;
+  min-height: 50vh;
+}
+
+
+#lista5 {
+  display: none;
+}
+
+/* Change background color of buttons on hover */
+.nav button:hover {
+  background-color: #F2F2F2;
+}
+
+/* Create an active/current tablink class */
+.nav button.active {
+  background-color: #ddd;
+}
+
+/* Style the tab content */
+.tabcontent {
+  display: none;
+  padding: 6px 12px;
+  border-top: none;
+}
+
+.nav {
+    padding-left: 0;
+    margin-bottom: 0;
+    list-style: none;
+}
+.nav-tabs {
+    border-bottom: 0 none;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.nav>li>button {
+  position: relative;
+  display: block;
+  padding: 10px 15px;
+}
+
+.nav-tabs>li>button {
+    margin-right: 2px;
+    line-height: 1.42857143;
+    border: 1px solid transparent;
+    border-radius: 4px 4px 0 0;
+}
+
+.nav button {
+  background-color: #F0F0F0;
+  width: 150px;
+}
+
+.nav button, .nav button:focus, .nav button:active {
+  outline: none;
+}
+
+.nav-tabs>li.active>button, .nav-tabs>li.active>button:focus, .nav-tabs>li.active>button:hover {
+  color: #555;
+  cursor: default;
+  background-color: #fff;
+  border: 1px solid #000;
+}
+
+.tab-content>.tab-pane {
+    display: none;
+}
+
+.fade {
+    opacity: 0;
+    -webkit-transition: opacity .15s linear;
+    -o-transition: opacity .15s linear;
+    transition: opacity .15s linear;
+}
+
+.fade.in {
+    opacity: 1;
+}
+
+.tab-content>.active {
+    display: block;
+}
+
+span.date {
+  font-size: 2rem;
+}
+
+span.tdtitle {
+  font-weight: bold !important;
+}
+
+.a-date {
+  width: 20%;
+  text-align: center;
+}
+
+.text-img {
+  width: 40%;
+  margin-left: 1.5em;
+  margin-bottom: 10px;
+  float: right;
+}
+
+.pressImg {
+  height: 120px;
+  width: 100%;
+  background-size: cover;
+}
+
+.pbox1 p {
+  margin: 1em auto;
+  width: 90%;
+  font-size: 1em;
+}
+
+.pbox1 {
+  width: 32%;
+  height: 250px;
+  margin-right: 1%;
+  margin-top: 10px;
+  border-radius: 5px;
+  background-color: #0A79EB;
+  color: white;
+  float: left;
+  padding: 0 0 15px 0;
+  color: white !important;
+}
+
+.pbox2 {
+  background-color: #01468E;
+}
+
+.pbox3 {
+  background-color: #0A5393;
+}
+
+.pbox1:hover {
+  background-color: #032140;
+}
+
+.pbox1 .date, .pbox2 .date {
+  font-size: 10px;
+  font-weight: bold;
+  margin-top: 5px;
+  font-family: sans-serif;
+}
+
+table tr td:first-child {
+  font-weight: bold;
+}
+
+@media (max-width: 768px) {
+   #top1 {
+    background-image: url('../img/banner-mob.jpg');
+  }
+  #top2 {
+    background-image: url('../img/agenda-mob.jpg');
+  }
+  .page-header {
+      background-position: center center;
+  }
+  .prensa-banner {
+      background-position: 0px 80px;
+  }
+}
+
+@media (min-width: 992px) {
+  .bootstrap-datetimepicker-widget.dropdown-menu.timepicker-sbs {
+    width: 38em;
+  }
+}
+
+@media (min-width: 1200px) {
+  .bootstrap-datetimepicker-widget.dropdown-menu.timepicker-sbs {
+    width: 38em;
+  }
+}
+
+@media (max-width: 414px) {
+  .page-header {
+      background-position: center center;
+  }
+}
+
+@media (max-width: 375px) {
+  .page-header {
+      background-position: center center;
+  }
+}
+
+@media (max-width: 320px) {
+  .page-header {
+      background-position: center center;
+  }
+}
+
+
+@media screen and (min-width: 450px) and (max-width: 1024px) {
+  .col-md-8 {
+    flex: 0 0 95%;
+    max-width: 95%;
+  }
+  .offset-md-2 {
+    margin-left: 10%;
+  }
+}
