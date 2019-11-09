@@ -242,6 +242,7 @@ img.zoom {
 
 .back {
   margin-top: 10em;
+  margin-bottom: 3em;
 }
 
 /* END GALLERY STYLE*/
@@ -299,6 +300,7 @@ img.zoom {
     .photobut {
         margin-top: 3.5em;
     }
+
 }
 
 @media (max-width: 320px) {
