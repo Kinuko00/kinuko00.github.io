@@ -1,3 +1,7 @@
+.page-header .content-center {
+	top: 45% !important;
+}
+
 .bg-primary {
 	background-color: #a60c20 !important;
 }
@@ -130,6 +134,10 @@ a.nav-link.active{
 	color: white;
 }
 
+.whytpc .sepline {
+	display: none;
+}
+
 .whytpc i {
 	font-size: 3em;
 }
@@ -176,8 +184,12 @@ a.nav-link.active{
 	.navbar-nav p {
 		font-size: 1.5em !important;
 	}
-	.contact p {
-		text-align: center;
+	.whytpc .sepline {
+		background: white;
+		display: block;
+		height: 0,5px;
+		margin: 3em auto;
+		width: 10%;
 	}
 	.solutions .row {
 		flex-wrap: wrap;
@@ -188,6 +200,9 @@ a.nav-link.active{
 	}
 	.tools .col-md-4 {
 		margin-bottom: 1em;
+	}
+	.contact p {
+		text-align: center;
 	}
 
 }
