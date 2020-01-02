@@ -41,6 +41,10 @@ a.nav-link.active{
 	color: #a60c20 !important;
 }
 
+p.white {
+	color: #FFF;
+}
+
 .navbar a.nav-link:focus {
 	color: #a60c20 !important;
 }
@@ -165,11 +169,31 @@ a.nav-link.active{
 	width: 50%;
 }
 
+.section-team .img-fluid {
+	max-width: 55%;
+}
+
+.section-team .category {
+	color: #a60c20 !important;
+}
+
+.section-team .description {
+	color: black !important;
+}
+
 .section-contact-us p {
 	padding-bottom: 1em;
 	color: gray;
 }
 
+.section-contact-us a.btn:hover,
+.section-contact-us a.btn:focus,
+.section-contact-us a.btn:active {
+	background-color: red;
+	color: white;
+}
+
+}
 .copyright {
 	margin-top: 2em;
 }
@@ -220,6 +244,9 @@ a.nav-link.active{
 	}
 	.tools .col-md-4 {
 		margin-bottom: 1em;
+	}
+	.team-player {
+		margin-bottom: 2em;
 	}
 	.contact p {
 		text-align: center;

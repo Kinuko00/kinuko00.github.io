@@ -1468,7 +1468,7 @@ html:not([dir="rtl"]) .noUi-horizontal .noUi-handle {
 .show>.navbar .navbar-nav>a.btn.dropdown-toggle:focus,
 .show>.navbar .navbar-nav>a.btn.dropdown-toggle:hover {
   background-color: #979797;
-  color: #FFFFFF;
+  color: #FFF;
   box-shadow: none;
 }
 
