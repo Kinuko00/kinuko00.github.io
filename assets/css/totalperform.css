@@ -69,10 +69,6 @@ p.white {
 
 .footer p
 
-.section-images {
-	background: #a60c20 ;
-}
-
 .section-tabs .category {
 	color: #a60c20;
 	font-size: 2em;
@@ -224,6 +220,10 @@ p.white {
 
 .positions hr {
 	display: none;
+}
+
+.section-images {
+	background: #a60c20 !important;
 }
 
 @media screen and (max-width: 770px) {
