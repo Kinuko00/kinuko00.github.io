@@ -64,6 +64,7 @@ p.white {
 
 .footer {
 	text-align: center !important;
+	height: 200px;
 }
 
 .section-images {
@@ -198,6 +199,30 @@ p.white {
 	margin-top: 2em;
 }
 
+.positions {
+	background-color: #a60c20;
+	color: white;
+}
+
+.positions h3 {
+	color: black;
+	font-weight: bold;
+	font-size: 1.4em;
+}
+
+.positions p {
+	font-size: 1em;
+	padding: 0 20px;
+	text-align: justify;
+}
+
+.positions .btn-primary {
+	background-color: black;
+}
+
+.positions hr {
+	display: none;
+}
 
 @media screen and (max-width: 770px) {
 	.section-images .hero-images-container {
@@ -219,6 +244,12 @@ p.white {
 
 
 @media screen and (max-width: 670px) {
+	.page-header-small .content-center {
+		top: 60% !important;
+	}
+	.page-header-small .text-center p {
+		line-height: 1.2em;
+	}
 	.hero-images-container-1 {
 		display: none !important;
 	}
@@ -250,6 +281,15 @@ p.white {
 	}
 	.contact p {
 		text-align: center;
+	}
+
+	.positions .col-md-4 {
+		margin-bottom: 2em;
+	}
+
+	.positions hr {
+		background: white;
+		display: block;
 	}
 
 }
