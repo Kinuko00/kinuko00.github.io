@@ -174,7 +174,27 @@ a.nav-link.active{
 	margin-top: 2em;
 }
 
-@media screen and (max-width: 768px) {
+
+@media screen and (max-width: 770px) {
+	.section-images .hero-images-container {
+		max-width: 325px;
+	}
+	.section-images .hero-images-container-1 {
+		max-width: 225px;
+	}
+	.section-images .hero-images-container-2 {
+		max-width: 138px;
+	}
+	.solutions .col-md-4 {
+		margin: 2px;
+	}
+	.footer .copyright {
+		text-align: center;
+	}
+}
+
+
+@media screen and (max-width: 670px) {
 	.hero-images-container-1 {
 		display: none !important;
 	}
@@ -206,3 +226,4 @@ a.nav-link.active{
 	}
 
 }
+
