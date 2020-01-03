@@ -235,6 +235,7 @@ p.white {
 .breve-mob {
 	display: none;
 }
+
 .section-images {
 	background: #a60c20 !important;
 }
@@ -250,8 +251,7 @@ p.white {
 }
 
 .job-title {
-	margin-top: 2em;
-	text-align: left !important;
+	margin-top: 8em;
 }
 
 .job-title h1 {
@@ -320,6 +320,9 @@ p.white {
 	.solutions .col-md-4 {
 		margin: 10px auto;
 		max-width: 90%;
+	}
+	.tools h2 {
+		font-size: 1.1em;
 	}
 	.tools .col-md-4 {
 		margin-bottom: 1em;
