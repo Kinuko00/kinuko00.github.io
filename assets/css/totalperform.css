@@ -71,6 +71,9 @@ p.white {
 	color: #a60c20 !important;
 }
 
+.footer i {
+	font-size: 1.6em !important;
+}
 
 .section-tabs .category {
 	color: #a60c20;
@@ -123,9 +126,13 @@ p.white {
 	min-height: 250px;
 }
 
-.solutions button.btn:hover,
-.solutions button.btn:focus {
+.solutions button.btn:hover {
 	background-color: black;
+}
+
+.solutions button.btn:focus {
+	background-color: #a60c20;
+	color: white;
 }
 
 .solutions p {
@@ -229,6 +236,27 @@ p.white {
 	background: #a60c20 !important;
 }
 
+.page-header.page-header-small.job-banner {
+	max-height: 100px !important;
+	min-height: 40vh;
+}
+
+.job-title {
+	margin-top: 2em;
+	text-align: left !important;
+}
+
+.job-title h1 {
+	margin-bottom: 1px;
+}
+
+.section-description {
+	background: #a60c20;
+	color: white;
+	font-weight: 200;
+	padding: 20px 0;
+}
+
 @media screen and (max-width: 770px) {
 	.section-images .hero-images-container {
 		max-width: 325px;
@@ -292,10 +320,16 @@ p.white {
 	.positions .col-md-4 {
 		margin-bottom: 2em;
 	}
-
 	.positions hr {
 		background: white;
 		display: block;
+	}
+	.job-banner .job-title {
+		font-size: 0.5em;
+	}
+	.job-banner h3 {
+		margin-top: 1em;
+		font-size: 2.5em;
 	}
 	.footer {
 		min-height: 350px;
@@ -304,7 +338,7 @@ p.white {
 		margin-top: 1em;
 	}
 	.footer .copyright {
-		margin-top: 4em !important;
+		margin-top: 2em !important;
 	}
 
 }

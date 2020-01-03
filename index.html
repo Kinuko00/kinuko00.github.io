@@ -26,7 +26,7 @@
     <nav class="navbar navbar-expand-lg bg-primary fixed-top navbar-transparent " color-on-scroll="400">
         <div class="container">
             <div class="navbar-translate">
-                <a class="navbar-brand" href="index.html" rel="tooltip" data-placement="bottom">
+                <a class="navbar-brand" href="javascript:void(0)" onclick="scrollToHeader()" rel="tooltip" data-placement="bottom">
                     <img style="width:15em" src="assets/img/logo.png" alt="Total Performance logo">
                 </a>
                 <button class="navbar-toggler navbar-toggler" type="button" data-toggle="collapse" data-target="#navigation" aria-controls="navigation-index" aria-expanded="false" aria-label="Toggle navigation">
@@ -324,6 +324,16 @@
                 }, 1000);
             }
         }
+
+        function scrollToHeader() {
+
+            if ($('.page-header').length != 0) {
+                $("html, body").animate({
+                    scrollTop: $('.page-header').offset().top
+                }, 1000);
+            }
+        }
+
 
         </script>
 </body>
