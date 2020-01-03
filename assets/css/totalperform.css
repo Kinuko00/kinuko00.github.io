@@ -232,10 +232,18 @@ p.white {
 	display: none;
 }
 
+.breve-mob {
+	display: none;
+}
 .section-images {
 	background: #a60c20 !important;
 }
 
+.section-work .col-md-6:nth-child(1) {
+	background-image: url("../img/buildings.jpg");
+	background-size: cover;
+	height: 350px;
+}
 .page-header.page-header-small.job-banner {
 	max-height: 100px !important;
 	min-height: 40vh;
@@ -272,6 +280,12 @@ p.white {
 	}
 	.positions .col-md-4:nth-child(3) p {
 		padding-top: 2em;
+	}
+	.section-work .col-md-6 {
+		min-width: 90% !important;
+	}
+	.section-work img {
+		max-height: 200px;
 	}
 	.footer .copyright {
 		text-align: center;
@@ -322,6 +336,12 @@ p.white {
 	}
 	.positions hr {
 		background: white;
+		display: block;
+	}
+	.breve {
+		display: none;
+	}
+	.breve-mob {
 		display: block;
 	}
 	.job-banner .job-title {
