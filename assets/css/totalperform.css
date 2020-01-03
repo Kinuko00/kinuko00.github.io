@@ -67,6 +67,10 @@ p.white {
 	height: 200px;
 }
 
+.footer .btn-neutral:focus {
+	color: #a60c20 !important;
+}
+
 
 .section-tabs .category {
 	color: #a60c20;
