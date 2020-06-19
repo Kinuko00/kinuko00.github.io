@@ -1,0 +1,54 @@
+h1 {
+	color: red;
+}
+
+h2 {
+	background-color: black;
+	color: white;
+	padding: 10px 15px;
+}
+
+.gray {
+	color: #CCC;
+	font-weight: 800;
+}
+
+.blue {
+	color: blue;
+}
+
+.green {
+	color: green;
+	font-weight: bold;
+}
+
+table {
+	border: 2px solid green;
+	text-align: center;
+	width: 100%;
+}
+
+table th {
+	background-color: #8D8D8C;
+	color: white;
+	font-weight: bold;
+	height: 50px;
+	text-transform: uppercase;
+}
+
+tr.even {
+	background-color: #E5E5E5;
+}
+
+tr.odd {
+	background-color: #FFFABC;
+}
+
+img {
+	border: 5px solid blue;
+	float: left;
+	margin-right: 15px;
+	margin-bottom: 20px;
+	margin-top: 20px;
+	height: 250px;
+}
