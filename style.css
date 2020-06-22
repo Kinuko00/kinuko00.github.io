@@ -19,7 +19,7 @@ h2 {
 
 .green {
 	color: green;
-	font-weight: bold;
+	font-weight: strong;
 }
 
 table {
@@ -31,7 +31,7 @@ table {
 table th {
 	background-color: #8D8D8C;
 	color: white;
-	font-weight: bold;
+	font-weight: strong;
 	height: 50px;
 	text-transform: uppercase;
 }
@@ -48,7 +48,40 @@ img {
 	border: 5px solid blue;
 	float: left;
 	margin-right: 15px;
-	margin-bottom: 20px;
+	margin-bottom: 20pxm;
 	margin-top: 20px;
 	height: 250px;
+}
+
+ul, ol {
+	font-family: arial;
+	font-size: 15px;
+}
+
+.box {
+	background-color: gray;
+	text-align: center;
+	font-size: 2em;
+	margin: 1%;
+	min-height: 200px;
+	padding: 20px;
+	width: 45%;
+}
+
+.left {
+	float: left;
+}
+
+.right {
+	float: right;
+}
+
+.three {
+	background-color: orange;
+	color: white;
+	float: left;
+	margin: 1%;
+	min-height: 200px;
+	text-align: center;
+	width: 31.3%;
 }
