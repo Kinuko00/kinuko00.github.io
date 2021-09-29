@@ -8,43 +8,72 @@
     <style>
     body {
         background: #050306;
-        text-align: center;
+    }
+
+     .container {
+        display: flex;
+        flex-direction: column;
+    }
+    .container * {
+        margin-left: auto;
+        margin-right: auto;
     }
 
     img {
-        margin-top: 10em;
+        margin: 8em 0;
         height: 20em;
     }
 
-    #button {
-        background-color: white;
-        height: 75px;
-        margin-left: 30%;
-        width: 40%;
+    .raise:active,
+    .raise:focus {
+        box-shadow: 0 0.5em 0.5em -0.4em var(--hover);
+        transform: translateY(-0.25em);
     }
 
-    p {
+    .raise {
+        --hover: red;
+        background-color: #004B91;
+        font-weight: bold;
+        color: white;
+        border: red 5px solid;
+    }
+
+    button {
+        color: var(--color);
+        transition: 0.25s;
+    }
+
+    button:active,
+    button:focus {
+        border-color: var(--hover);
+        color: #fff;
+    }
+
+    button {
+        background: none;
+        font: inherit;
         font-size: 3em;
         font-family: "Gill Sans Extrabold", Helvetica, sans-serif;
-        margin-top: 90px;
-        padding-top: 10px;
+        line-height: 1;
+        padding: 1em 2em;
     }
-    
+
+   
     </style>
 </head>
 
 <body>
     <div class="container">
         <img src="logo.jpg" alt="Daom">
-        <div id="button">
-            <p>GENERAR</p>
-        </div>
+        <button class="raise">
+            GENERAR
+        </button>
         <div id="random" style="font-size: 30em; color: white; text-align:center">
         </div>
     </div>
     <script>
     (function() {
-        document.querySelector("#button").addEventListener("click", function() {
+        document.querySelector(".raise").addEventListener("click", function() {
             let numbers = [];
             for (var i = 1; i <= 405; i++) {
                 numbers.push(i)
@@ -52,6 +81,7 @@
             numbers = [...numbers, ...[410, 421, 427, 515, 550, 581, 622, 652, 699]];
             var random = numbers[Math.floor(Math.random() * (numbers.length - 1)) + 1];
             document.querySelector("#random").innerText = random;
+            this.blur()
         })
     })()
     </script>
