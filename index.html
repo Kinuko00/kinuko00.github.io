@@ -1,32 +1,60 @@
-<html style="height: 100%">
+<!DOCTYPE html>
+<html>
 
 <head>
-    <title>KinuSolutions</title>
-    <link rel="icon" type="image/png" href="./img/favicon.png">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Number Generator</title>
     <style>
     body {
-        background: url(./img/background.jpg);
-        background-position: bottom center;
-        background-repeat: no-repeat;
-        background-size: cover;
-        height: 100vh;
-        min-height: 100%;
-        min-width: 1024px;
-
-        /* Set up proportionate scaling */
-        width: 100%;
-        height: auto;
-
-        /* Set up positioning */
-        position: fixed;
-        top: 0;
-        left: 0;
+        background: #050306;
+        text-align: center;
     }
+
+    img {
+        margin-top: 10em;
+        height: 20em;
+    }
+
+    #button {
+        background-color: white;
+        height: 75px;
+        margin-left: 30%;
+        width: 40%;
+    }
+
+    p {
+        font-size: 3em;
+        font-family: "Gill Sans Extrabold", Helvetica, sans-serif;
+        margin-top: 90px;
+        padding-top: 10px;
+    }
+    
     </style>
 </head>
 
 <body>
-	<img src="./img/logo.png" alt="KinuSolutions" style="margin-top: 10px; margin-left: 10px; width: 80px;"> 	
+    <div class="container">
+        <img src="logo.jpg" alt="Daom">
+        <div id="button">
+            <p>GENERAR</p>
+        </div>
+        <div id="random" style="font-size: 30em; color: white; text-align:center">
+        </div>
+    </div>
+    <script>
+    (function() {
+        document.querySelector("#button").addEventListener("click", function() {
+            let numbers = [];
+            for (var i = 1; i <= 405; i++) {
+                numbers.push(i)
+            }
+            numbers = [...numbers, ...[410, 421, 427, 515, 550, 581, 622, 652, 699]];
+            var random = numbers[Math.floor(Math.random() * (numbers.length - 1)) + 1];
+            document.querySelector("#random").innerText = random;
+        })
+    })()
+    </script>
 </body>
 
 </html>
