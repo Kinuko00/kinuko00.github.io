@@ -1,11 +1,7 @@
 /*
  * Contenido del curso "Aprendamos IA".
  * Cada módulo está pensado para unos 15 minutos:
- *   ~7 min de lectura (o video), ~3 min de preguntas y ~5 min de práctica.
- *
- * Para agregar un video propio, complete "video.youtubeId" con el código
- * del video de YouTube (lo que aparece después de "watch?v=").
- * Si queda vacío, se muestra un botón para buscar videos sobre el tema.
+ *   ~7 min de lectura, ~3 min de preguntas y ~5 min de práctica.
  */
 
 const NIVELES = [
@@ -27,7 +23,6 @@ const MODULOS = [
       "Distinguir la IA real de la que aparece en las películas.",
       "Perderle el miedo: la IA es una herramienta, como la calculadora."
     ],
-    video: { youtubeId: "", busqueda: "qué es la inteligencia artificial explicado fácil" },
     secciones: [
       {
         titulo: "Una idea sencilla",
@@ -137,7 +132,6 @@ const MODULOS = [
       "Entender que ya es usuario de IA, aunque no lo supiera.",
       "Ganar confianza para dar el siguiente paso."
     ],
-    video: { youtubeId: "", busqueda: "inteligencia artificial en la vida cotidiana ejemplos" },
     secciones: [
       {
         titulo: "Buenas noticias: usted ya usa IA",
@@ -246,7 +240,6 @@ const MODULOS = [
       "Saber cómo acceder a uno desde el teléfono o la computadora.",
       "Reconocer las partes de la pantalla de un asistente."
     ],
-    video: { youtubeId: "", busqueda: "cómo usar ChatGPT para principiantes" },
     secciones: [
       {
         titulo: "¿Qué es un asistente de IA?",
@@ -366,7 +359,6 @@ const MODULOS = [
       "Pedir que la IA corrija o mejore su respuesta.",
       "Usar la conversación como un ida y vuelta."
     ],
-    video: { youtubeId: "", busqueda: "cómo escribir buenas preguntas a ChatGPT prompts principiantes" },
     secciones: [
       {
         titulo: "Hablarle como a un ayudante nuevo",
@@ -485,7 +477,6 @@ const MODULOS = [
       "Pedir explicaciones de textos difíciles.",
       "Organizar actividades, compras y viajes."
     ],
-    video: { youtubeId: "", busqueda: "usos prácticos de la inteligencia artificial en la vida diaria" },
     secciones: [
       {
         titulo: "Escribir mensajes y cartas",
@@ -601,7 +592,6 @@ const MODULOS = [
       "Enviar una foto y hacer preguntas sobre ella.",
       "Conocer usos prácticos de la cámara con IA."
     ],
-    video: { youtubeId: "", busqueda: "cómo usar modo de voz y cámara en ChatGPT o Gemini tutorial" },
     secciones: [
       {
         titulo: "Si escribir le cuesta, ¡hable!",
@@ -713,7 +703,6 @@ const MODULOS = [
       "Aplicar tres formas sencillas de verificar.",
       "Saber en qué temas siempre hay que consultar a un profesional."
     ],
-    video: { youtubeId: "", busqueda: "por qué la inteligencia artificial se equivoca alucinaciones explicado" },
     secciones: [
       {
         titulo: "Seguro… pero equivocado",
@@ -839,7 +828,6 @@ const MODULOS = [
       "Reconocer estafas que usan IA: voces clonadas, videos y fotos falsas.",
       "Armar un plan familiar de seguridad con una palabra clave."
     ],
-    video: { youtubeId: "", busqueda: "estafas con inteligencia artificial clonación de voz cómo protegerse" },
     secciones: [
       {
         titulo: "Lo que nunca se comparte",
@@ -969,7 +957,6 @@ const MODULOS = [
       "Comprender por qué a veces se equivoca.",
       "Conocer algunas palabras que se escuchan en las noticias."
     ],
-    video: { youtubeId: "", busqueda: "cómo funciona ChatGPT explicado de forma sencilla" },
     secciones: [
       {
         titulo: "Aprender leyendo muchísimo",
@@ -1091,7 +1078,6 @@ const MODULOS = [
       "Hacer un pequeño proyecto personal de principio a fin.",
       "Saber cómo seguir aprendiendo."
     ],
-    video: { youtubeId: "", busqueda: "proyectos sencillos con inteligencia artificial para principiantes" },
     secciones: [
       {
         titulo: "Repaso del camino",

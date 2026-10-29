@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mi avance · Aprendamos IA</title>
+  <meta name="description" content="Curso gratuito y paso a paso de inteligencia artificial desde cero, en español y chino mandarín: lecciones de 15 minutos, preguntas de repaso y ejercicios prácticos.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/estilos.css?v=4">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌱</text></svg>">
+</head>
+<body data-titulo="tituloAvance">
+  <a class="saltar" href="#contenido" data-t="saltar">Saltar al contenido</a>
+  <header class="encabezado">
+    <div class="contenedor">
+      <a class="marca" href="index.html"><span aria-hidden="true">🌱</span> <span data-t="marca">Aprendamos IA</span></a>
+      <div class="herramientas" role="group" aria-label="Ajustes de lectura" data-t-aria="ajustesLectura">
+        <button type="button" id="btn-idioma" lang="zh-CN" aria-label="Cambiar el idioma a chino mandarín" data-t-aria="cambiarIdioma">🌐 中文</button>
+        <button type="button" id="btn-letra-menos" aria-label="Achicar la letra" data-t-aria="letraMenos">A−</button>
+        <button type="button" id="btn-letra-mas" aria-label="Agrandar la letra" data-t-aria="letraMas">A+</button>
+        <button type="button" id="btn-contraste" aria-pressed="false" data-t="contraste">🌓 Contraste</button>
+        <a class="boton" href="glosario.html" data-t="glosario">📚 Glosario</a>
+        <a class="boton" href="avance.html" data-t="avanceBoton">💾 Mi avance</a>
+      </div>
+    </div>
+  </header>
+  <main id="contenido" class="contenedor">
+    <p class="migas no-imprimir"><a href="index.html" data-t="volverInicio">← Volver al inicio</a></p>
+    <h1 class="no-imprimir" data-t="avanceTitulo">💾 Guardar mi avance</h1>
+    <section id="avance">
+      <p class="no-imprimir" data-t-html="avanceAuto">Su avance se guarda <strong>solo</strong> en este teléfono o computadora cada vez que responde una pregunta o marca un ejercicio. No hace falta tocar ningún botón.</p>
+      <p id="resumen-avance" class="resultado-cuestionario" aria-live="polite"></p>
+
+      <div class="tarjeta">
+        <p class="solo-imprimir" data-t="codigoImpreso">Aprendamos IA · Código de avance</p>
+        <h2 style="margin-top:0" class="no-imprimir" data-t="codigoTitulo">Su código de avance</h2>
+        <p class="no-imprimir" data-t="codigoExplica">Anote este código en un papel, o cópielo y envíeselo a usted mismo por mensaje.</p>
+        <p id="codigo-avance" class="codigo-avance" aria-label="Código de avance" data-t-aria="codigoAria" aria-live="polite"></p>
+        <div class="acciones no-imprimir">
+          <button type="button" id="btn-copiar-codigo" class="boton grande principal" data-t="codigoCopiar">📋 Copiar el código</button>
+          <button type="button" id="btn-imprimir-codigo" class="boton grande" data-t="codigoImprimir">🖨 Imprimir el código</button>
+        </div>
+        <p class="consejo" data-t="codigoNota">El código cambia a medida que avanza. Al terminar cada sesión, anote el código nuevo.</p>
+      </div>
+
+      <div class="tarjeta no-imprimir">
+        <h2 style="margin-top:0" data-t="recuperarTitulo">Recuperar mi avance</h2>
+        <p data-t="recuperarExplica">Si tiene un código de avance, escríbalo aquí.</p>
+        <form id="form-recuperar">
+          <div class="campo">
+            <label for="campo-codigo"><strong data-t="recuperarLabel">Código de avance:</strong></label>
+            <input id="campo-codigo" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false">
+          </div>
+          <button type="submit" class="boton grande principal" data-t="recuperarBoton">↺ Recuperar avance</button>
+          <p id="mensaje-recuperar" class="mensaje" aria-live="polite"></p>
+        </form>
+      </div>
+    </section>
+  </main>
+  <footer class="pie">
+    <div class="contenedor">
+      <p data-t="pie">Aprendamos IA · Un curso para aprender a su ritmo. Su avance se guarda en este dispositivo; para guardarlo o pasarlo a otro, use “💾 Mi avance”.</p>
+    </div>
+  </footer>
+  <script src="js/textos.js?v=4"></script>
+  <script src="js/contenido.js?v=4"></script>
+  <script src="js/contenido-zh.js?v=4"></script>
+  <script src="js/app.js?v=4"></script>
+</body>
+</html>
