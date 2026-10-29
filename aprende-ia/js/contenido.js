@@ -246,7 +246,7 @@ const MODULOS = [
       "Saber cómo acceder a uno desde el teléfono o la computadora.",
       "Reconocer las partes de la pantalla de un asistente."
     ],
-    video: { youtubeId: "", busqueda: "cómo usar ChatGPT para principiantes adultos mayores" },
+    video: { youtubeId: "", busqueda: "cómo usar ChatGPT para principiantes" },
     secciones: [
       {
         titulo: "¿Qué es un asistente de IA?",
@@ -347,8 +347,8 @@ const MODULOS = [
         titulo: "Mi primer saludo",
         pasos: [
           "En la caja de texto escriba el siguiente mensaje y tóquele la flecha para enviarlo:",
-          "<span class=\"prompt\">Hola, tengo 67 años y estoy aprendiendo a usar la inteligencia artificial. ¿Me explicas en pocas palabras qué puedes hacer por mí?</span>",
-          "Lea la respuesta con calma. Puede cambiar la edad por la suya."
+          "<span class=\"prompt\">Hola, estoy aprendiendo a usar la inteligencia artificial. ¿Me explicas en pocas palabras qué puedes hacer por mí?</span>",
+          "Lea la respuesta con calma."
         ],
         consejo: "No se puede “romper” nada. Si la respuesta es muy larga, escriba: “Más corto, por favor”."
       }
@@ -420,11 +420,11 @@ const MODULOS = [
         pregunta: "¿Cuál de estos pedidos dará una mejor respuesta?",
         opciones: [
           "“Viaje.”",
-          "“Sugiéreme 3 paseos de un día cerca de Córdoba para una pareja de 68 años, con poco caminar.”",
+          "“Sugiéreme 3 paseos de un día cerca de Córdoba para una pareja que prefiere caminar poco.”",
           "“Decime algo.”"
         ],
         correcta: 1,
-        explicacion: "Dice qué quiere (paseos), para quién (pareja de 68 años) y cómo (3 opciones, poco caminar)."
+        explicacion: "Dice qué quiere (paseos), para quién (una pareja) y cómo (3 opciones, poco caminar)."
       },
       {
         pregunta: "Si la respuesta es muy complicada, ¿qué conviene hacer?",
@@ -514,7 +514,7 @@ const MODULOS = [
           <ul>
             <li><span class="prompt">Hazme una lista de compras para una semana de comidas sencillas para una persona. Organízala por sección del supermercado.</span></li>
             <li><span class="prompt">Tengo turno con el médico el martes, la reunión del club el jueves y quiero caminar 3 veces por semana. Ármame un plan semanal.</span></li>
-            <li><span class="prompt">Vamos a visitar Mendoza 3 días en abril. Somos dos personas de 70 años. Sugiéreme un itinerario tranquilo.</span></li>
+            <li><span class="prompt">Vamos a visitar Mendoza 3 días en abril. Somos dos personas y queremos ir con calma. Sugiéreme un itinerario tranquilo.</span></li>
           </ul>`
       },
       {
@@ -949,7 +949,7 @@ const MODULOS = [
       {
         titulo: "¿Estafa o no?",
         pasos: [
-          "Pídale a la IA: <span class=\"prompt\">Dame 3 ejemplos de mensajes de estafa comunes que reciben las personas mayores y explícame cómo reconocer cada uno.</span>",
+          "Pídale a la IA: <span class=\"prompt\">Dame 3 ejemplos de mensajes de estafa comunes que recibe la gente y explícame cómo reconocer cada uno.</span>",
           "Lea los ejemplos e identifique las señales: urgencia, secreto, dinero, enlaces extraños.",
           "Revise sus mensajes recientes: ¿recibió alguno parecido?"
         ],
@@ -1091,7 +1091,7 @@ const MODULOS = [
       "Hacer un pequeño proyecto personal de principio a fin.",
       "Saber cómo seguir aprendiendo."
     ],
-    video: { youtubeId: "", busqueda: "proyectos con inteligencia artificial para adultos mayores" },
+    video: { youtubeId: "", busqueda: "proyectos sencillos con inteligencia artificial para principiantes" },
     secciones: [
       {
         titulo: "Repaso del camino",

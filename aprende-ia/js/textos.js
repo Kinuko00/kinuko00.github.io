@@ -23,9 +23,9 @@ const TEXTOS = {
     sinJs: "Para ver las lecciones, active JavaScript en su navegador.",
     volverInicio: "← Volver al inicio",
 
-    tituloIndex: "Aprendamos IA · Curso de inteligencia artificial para mayores",
+    tituloIndex: "Aprendamos IA · Curso de inteligencia artificial desde cero",
     bienvenidaTitulo: "Aprendamos inteligencia artificial, de a poco y sin apuro",
-    bienvenidaTexto: "Un curso pensado para personas de <strong>65 a 70 años</strong> (¡y para cualquiera que quiera empezar desde cero!). Son <strong>10 módulos de 15 minutos</strong>, organizados en 4 niveles: empezamos por lo más básico y vamos profundizando paso a paso.",
+    bienvenidaTexto: "Un curso para empezar <strong>desde cero</strong>, sin conocimientos previos. Son <strong>10 módulos de 15 minutos</strong>, organizados en 4 niveles: empezamos por lo más básico y vamos profundizando paso a paso.",
     paso1: "<strong>1. Vea o lea</strong>Cada módulo tiene una lección corta. Puede escucharla en voz alta con el botón 🔊.",
     paso2: "<strong>2. Repase</strong>Responda preguntas sencillas y vea al instante si acertó, con una explicación.",
     paso3: "<strong>3. Practique</strong>Ejercicios con su teléfono o computadora para usar lo aprendido.",
@@ -115,9 +115,9 @@ const TEXTOS = {
     sinJs: "要查看课程内容，请在浏览器中开启JavaScript。",
     volverInicio: "← 返回首页",
 
-    tituloIndex: "一起学AI · 给长者的人工智能课程",
+    tituloIndex: "一起学AI · 从零开始的人工智能课程",
     bienvenidaTitulo: "一起学人工智能，慢慢来，不着急",
-    bienvenidaTexto: "这门课程专为<strong>65到70岁</strong>的长者设计（也适合任何想从零开始的人！）。共有<strong>10节课，每节15分钟</strong>，分为4个级别：从最基础的开始，一步一步深入。",
+    bienvenidaTexto: "这门课程让您<strong>从零开始</strong>学习，不需要任何基础。共有<strong>10节课，每节15分钟</strong>，分为4个级别：从最基础的开始，一步一步深入。",
     paso1: "<strong>1. 看或读</strong>每节课都有一段简短的讲解。可以按🔊按钮让它朗读出来。",
     paso2: "<strong>2. 复习</strong>回答简单的问题，马上就能知道答对没有，还有解释。",
     paso3: "<strong>3. 练习</strong>用手机或电脑做练习，把学到的用起来。",

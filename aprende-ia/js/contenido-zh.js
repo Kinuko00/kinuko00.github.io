@@ -240,7 +240,7 @@ CONTENIDO.zh = {
         "知道怎么在手机或电脑上使用其中一个。",
         "认识AI助手界面上的各个部分。"
       ],
-      video: { youtubeId: "", busqueda: "老年人怎么用AI助手 入门教程" },
+      video: { youtubeId: "", busqueda: "怎么用AI助手 入门教程" },
       secciones: [
         {
           titulo: "什么是AI助手？",
@@ -344,8 +344,8 @@ CONTENIDO.zh = {
           titulo: "我的第一次问候",
           pasos: [
             "在输入框里写下面这段话，然后点箭头发送：",
-            "<span class=\"prompt\">你好，我今年67岁，正在学习使用人工智能。你能用简单的几句话告诉我，你能帮我做些什么吗？</span>",
-            "慢慢读回答。可以把年龄改成您自己的。"
+            "<span class=\"prompt\">你好，我正在学习使用人工智能。你能用简单的几句话告诉我，你能帮我做些什么吗？</span>",
+            "慢慢读回答。"
           ],
           consejo: "您不会把任何东西“弄坏”。如果回答太长，就写：“请说得简短一点。”"
         }
@@ -417,11 +417,11 @@ CONTENIDO.zh = {
           pregunta: "下面哪个请求能得到更好的回答？",
           opciones: [
             "“旅行。”",
-            "“给一对68岁的夫妻推荐3个杭州附近的一日游，不用走太多路。”",
+            "“给一对夫妻推荐3个杭州附近的一日游，不用走太多路。”",
             "“说点什么。”"
           ],
           correcta: 1,
-          explicacion: "它说清楚了要什么（一日游）、给谁（68岁的夫妻）、什么样的（3个选择、少走路）。"
+          explicacion: "它说清楚了要什么（一日游）、给谁（一对夫妻）、什么样的（3个选择、少走路）。"
         },
         {
           pregunta: "如果回答太复杂，最好怎么做？",
@@ -511,7 +511,7 @@ CONTENIDO.zh = {
             <ul>
               <li><span class="prompt">帮我列一份一个人一周简单饭菜的购物清单，按超市的区域分类。</span></li>
               <li><span class="prompt">我星期二要去看医生，星期四有俱乐部聚会，还想每周散步3次。帮我做一个一周计划。</span></li>
-              <li><span class="prompt">我们四月份要去桂林玩3天，两个人都70岁了。请帮我们安排一个轻松的行程。</span></li>
+              <li><span class="prompt">我们四月份要去桂林玩3天，想玩得轻松一点。请帮我们安排一个轻松的行程。</span></li>
             </ul>`
         },
         {
@@ -833,7 +833,7 @@ CONTENIDO.zh = {
         "识别利用AI的诈骗：克隆声音、假视频和假照片。",
         "和家人一起制定一个有暗号的安全计划。"
       ],
-      video: { youtubeId: "", busqueda: "AI诈骗 声音克隆 老年人如何防范" },
+      video: { youtubeId: "", busqueda: "AI诈骗 声音克隆 如何防范" },
       secciones: [
         {
           titulo: "绝不能透露的信息",
@@ -941,7 +941,7 @@ CONTENIDO.zh = {
         {
           titulo: "是不是诈骗？",
           pasos: [
-            "请AI帮忙：<span class=\"prompt\">给我举3个老年人常收到的诈骗消息的例子，并告诉我怎么识别每一种。</span>",
+            "请AI帮忙：<span class=\"prompt\">给我举3个大家常收到的诈骗消息的例子，并告诉我怎么识别每一种。</span>",
             "读这些例子，找出其中的信号：着急、保密、要钱、奇怪的链接。",
             "看看您最近收到的消息：有没有类似的？"
           ],
@@ -1083,7 +1083,7 @@ CONTENIDO.zh = {
         "从头到尾完成一个小小的个人项目。",
         "知道今后怎么继续学习。"
       ],
-      video: { youtubeId: "", busqueda: "老年人 用AI 生活 小项目" },
+      video: { youtubeId: "", busqueda: "用AI 生活 小项目 入门" },
       secciones: [
         {
           titulo: "回顾走过的路",
