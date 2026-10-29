@@ -18,12 +18,52 @@
   function guardar(clave, valor) {
     try { localStorage.setItem(clave, JSON.stringify(valor)); } catch (e) { /* sin almacenamiento */ }
   }
+  function ajustes() { return leer(CLAVE_AJUSTES, {}); }
+  function guardarAjuste(nombre, valor) {
+    const a = ajustes();
+    a[nombre] = valor;
+    guardar(CLAVE_AJUSTES, a);
+  }
 
+  // ── Idioma: ?lang=zh en la dirección, luego lo elegido antes, luego el del navegador ──
+  function elegirIdioma() {
+    const pedido = new URLSearchParams(location.search).get("lang");
+    if (pedido && IDIOMAS[pedido]) { guardarAjuste("idioma", pedido); return pedido; }
+    const guardado = ajustes().idioma;
+    if (guardado && IDIOMAS[guardado]) return guardado;
+    return (navigator.language || "").toLowerCase().startsWith("zh") ? "zh" : "es";
+  }
+  const idioma = elegirIdioma();
+  const datos = CONTENIDO[idioma];
+  const MODULOS = datos.modulos;
+  const NIVELES = datos.niveles;
+  const GLOSARIO = datos.glosario;
+
+  // Devuelve el texto de la interfaz, reemplazando {marcas} por valores.
+  function t(clave, valores) {
+    let texto = TEXTOS[idioma][clave];
+    if (texto === undefined) texto = TEXTOS.es[clave];
+    if (valores) {
+      Object.keys(valores).forEach(function (k) { texto = texto.split("{" + k + "}").join(valores[k]); });
+    }
+    return texto;
+  }
+
+  function traducirPagina() {
+    document.documentElement.lang = IDIOMAS[idioma].htmlLang;
+    const titulo = document.body.dataset.titulo;
+    if (titulo) document.title = t(titulo);
+    document.querySelectorAll("[data-t]").forEach(function (el) { el.textContent = t(el.dataset.t); });
+    document.querySelectorAll("[data-t-html]").forEach(function (el) { el.innerHTML = t(el.dataset.tHtml); });
+    document.querySelectorAll("[data-t-aria]").forEach(function (el) { el.setAttribute("aria-label", t(el.dataset.tAria)); });
+  }
+
+  // El progreso es el mismo en los dos idiomas: los módulos y las preguntas coinciden.
   function progreso() { return leer(CLAVE_PROGRESO, {}); }
   function progresoModulo(id) { return progreso()[id] || { respuestas: {}, ejercicios: {} }; }
-  function guardarProgresoModulo(id, datos) {
+  function guardarProgresoModulo(id, datosModulo) {
     const todo = progreso();
-    todo[id] = datos;
+    todo[id] = datosModulo;
     guardar(CLAVE_PROGRESO, todo);
   }
   function moduloCompleto(modulo) {
@@ -32,54 +72,69 @@
   }
   function cantidadCompletos() { return MODULOS.filter(moduloCompleto).length; }
 
-  // ── Ajustes de lectura: tamaño de letra y contraste ──
+  // ── Ajustes de lectura: tamaño de letra, contraste e idioma ──
   const TAMANOS = ["normal", "grande", "muy-grande"];
 
   function aplicarAjustes() {
-    const ajustes = leer(CLAVE_AJUSTES, { tam: "normal", contraste: "normal" });
-    document.documentElement.dataset.tam = ajustes.tam;
-    document.documentElement.dataset.contraste = ajustes.contraste;
+    const a = ajustes();
+    document.documentElement.dataset.tam = a.tam || "normal";
+    document.documentElement.dataset.contraste = a.contraste || "normal";
     const botonContraste = document.getElementById("btn-contraste");
-    if (botonContraste) botonContraste.setAttribute("aria-pressed", String(ajustes.contraste === "alto"));
-    return ajustes;
+    if (botonContraste) botonContraste.setAttribute("aria-pressed", String(a.contraste === "alto"));
   }
 
   function prepararHerramientas() {
     const menos = document.getElementById("btn-letra-menos");
     const mas = document.getElementById("btn-letra-mas");
     const contraste = document.getElementById("btn-contraste");
+    const cambioIdioma = document.getElementById("btn-idioma");
     if (!menos) return;
 
     function cambiarTam(paso) {
-      const ajustes = aplicarAjustes();
-      const i = Math.min(TAMANOS.length - 1, Math.max(0, TAMANOS.indexOf(ajustes.tam) + paso));
-      ajustes.tam = TAMANOS[i];
-      guardar(CLAVE_AJUSTES, ajustes);
+      const actual = TAMANOS.indexOf(ajustes().tam || "normal");
+      guardarAjuste("tam", TAMANOS[Math.min(TAMANOS.length - 1, Math.max(0, actual + paso))]);
       aplicarAjustes();
     }
     menos.addEventListener("click", function () { cambiarTam(-1); });
     mas.addEventListener("click", function () { cambiarTam(1); });
     contraste.addEventListener("click", function () {
-      const ajustes = aplicarAjustes();
-      ajustes.contraste = ajustes.contraste === "alto" ? "normal" : "alto";
-      guardar(CLAVE_AJUSTES, ajustes);
+      guardarAjuste("contraste", ajustes().contraste === "alto" ? "normal" : "alto");
       aplicarAjustes();
     });
+
+    if (cambioIdioma) {
+      const otro = idioma === "es" ? "zh" : "es";
+      cambioIdioma.textContent = "🌐 " + IDIOMAS[otro].nombre;
+      cambioIdioma.lang = IDIOMAS[otro].htmlLang;
+      cambioIdioma.addEventListener("click", function () {
+        detenerLectura();
+        guardarAjuste("idioma", otro);
+        const direccion = new URL(location.href);
+        direccion.searchParams.delete("lang");
+        location.href = direccion.toString();
+      });
+    }
   }
 
   // ── Lectura en voz alta ──
   const voz = window.speechSynthesis;
   let botonHablando = null;
 
-  function vozEspanol() {
-    const voces = voz.getVoices();
-    return voces.find(function (v) { return v.lang && v.lang.toLowerCase().startsWith("es"); }) || null;
+  function vozDelIdioma() {
+    const prefijo = idioma === "zh" ? "zh" : "es";
+    const voces = voz.getVoices().filter(function (v) { return v.lang && v.lang.toLowerCase().startsWith(prefijo); });
+    if (idioma === "zh") {
+      // Preferimos mandarín de China continental antes que cantonés (zh-HK).
+      return voces.find(function (v) { return /zh[-_]cn/i.test(v.lang); }) ||
+        voces.find(function (v) { return !/hk/i.test(v.lang); }) || voces[0] || null;
+    }
+    return voces[0] || null;
   }
 
   function detenerLectura() {
     if (voz) voz.cancel();
     if (botonHablando) {
-      botonHablando.textContent = "🔊 Escuchar";
+      botonHablando.textContent = t("escuchar");
       botonHablando.setAttribute("aria-pressed", "false");
       botonHablando = null;
     }
@@ -89,7 +144,7 @@
     const boton = document.createElement("button");
     boton.type = "button";
     boton.className = "boton escuchar no-imprimir";
-    boton.textContent = "🔊 Escuchar";
+    boton.textContent = t("escuchar");
     boton.setAttribute("aria-pressed", "false");
     if (!voz) { boton.hidden = true; return boton; }
 
@@ -99,13 +154,13 @@
       const copia = elementoTexto.cloneNode(true);
       copia.querySelectorAll("button, .no-leer").forEach(function (n) { n.remove(); });
       const frase = new SpeechSynthesisUtterance(copia.textContent.replace(/\s+/g, " ").trim());
-      frase.lang = "es-ES";
-      const v = vozEspanol();
+      frase.lang = IDIOMAS[idioma].vozLang;
+      const v = vozDelIdioma();
       if (v) { frase.voice = v; frase.lang = v.lang; }
       frase.rate = 0.9;
       frase.onend = detenerLectura;
       botonHablando = boton;
-      boton.textContent = "⏹ Detener";
+      boton.textContent = t("detener");
       boton.setAttribute("aria-pressed", "true");
       voz.speak(frase);
     });
@@ -116,14 +171,15 @@
   function prepararCopiar(raiz) {
     raiz.querySelectorAll(".prompt").forEach(function (caja) {
       const texto = caja.textContent.trim();
+      caja.dataset.etiqueta = t("promptEtiqueta");
       const boton = document.createElement("button");
       boton.type = "button";
       boton.className = "boton copiar no-imprimir";
-      boton.textContent = "📋 Copiar";
+      boton.textContent = t("copiar");
       boton.addEventListener("click", function () {
         const listo = function () {
-          boton.textContent = "✅ Copiado. Péguelo en su asistente";
-          setTimeout(function () { boton.textContent = "📋 Copiar"; }, 3000);
+          boton.textContent = t("copiado");
+          setTimeout(function () { boton.textContent = t("copiar"); }, 3000);
         };
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(texto).then(listo, function () { copiarRespaldo(texto); listo(); });
@@ -158,10 +214,9 @@
 
     const hechos = cantidadCompletos();
     const porcentaje = Math.round((hechos / MODULOS.length) * 100);
-    document.getElementById("texto-progreso").textContent =
-      hechos === 0
-        ? "Todavía no empezó. ¡Comience por el módulo 1!"
-        : "Completó " + hechos + " de " + MODULOS.length + " módulos (" + porcentaje + "%).";
+    document.getElementById("texto-progreso").textContent = hechos === 0
+      ? t("sinEmpezar")
+      : t("progresoTexto", { h: hechos, t: MODULOS.length, p: porcentaje });
     document.getElementById("barra-progreso").style.width = porcentaje + "%";
     document.querySelector(".barra").setAttribute("aria-valuenow", String(porcentaje));
 
@@ -169,17 +224,17 @@
     const continuar = document.getElementById("btn-continuar");
     if (siguiente) {
       continuar.href = "modulo.html?m=" + siguiente.id;
-      continuar.textContent = hechos === 0 ? "▶ Empezar el curso" : "▶ Continuar con el módulo " + siguiente.id;
+      continuar.textContent = hechos === 0 ? t("empezar") : t("continuar", { n: siguiente.id });
     } else {
       continuar.href = "diploma.html";
-      continuar.textContent = "🎓 Ver mi diploma";
+      continuar.textContent = t("verDiploma");
     }
 
     NIVELES.forEach(function (nivel) {
       const seccion = crear("section", "nivel");
       seccion.setAttribute("aria-labelledby", "nivel-" + nivel.numero);
       seccion.innerHTML =
-        '<div class="nivel-titulo"><span class="insignia">Nivel ' + nivel.numero + "</span>" +
+        '<div class="nivel-titulo"><span class="insignia">' + t("nivel", { n: nivel.numero }) + "</span>" +
         '<h2 id="nivel-' + nivel.numero + '">' + nivel.nombre + "</h2></div>" +
         "<p>" + nivel.descripcion + "</p>";
       const lista = crear("ol", "lista-modulos");
@@ -189,10 +244,10 @@
         item.innerHTML =
           '<a class="modulo-tarjeta' + (completo ? " completo" : "") + '" href="modulo.html?m=' + m.id + '">' +
           '<span class="modulo-numero" aria-hidden="true">' + (completo ? "✓" : m.id) + "</span>" +
-          '<span class="modulo-info"><strong>Módulo ' + m.id + ": " + m.titulo + "</strong>" +
+          '<span class="modulo-info"><strong>' + t("moduloTarjeta", { n: m.id, t: m.titulo }) + "</strong>" +
           "<span>" + m.resumen + "</span></span>" +
           '<span class="modulo-estado' + (completo ? " hecho" : "") + '">' +
-          (completo ? "✔ Completado" : "⏱ 15 min") + "</span></a>";
+          (completo ? t("completado") : t("quinceMin")) + "</span></a>";
         lista.appendChild(item);
       });
       seccion.appendChild(lista);
@@ -208,24 +263,22 @@
     const id = parseInt(new URLSearchParams(location.search).get("m"), 10) || 1;
     const modulo = MODULOS.find(function (m) { return m.id === id; }) || MODULOS[0];
     const nivel = NIVELES.find(function (n) { return n.numero === modulo.nivel; });
-    document.title = "Módulo " + modulo.id + ": " + modulo.titulo + " · Aprendamos IA";
+    document.title = t("tituloModulo", { n: modulo.id, t: modulo.titulo });
 
     // Encabezado del módulo
-    destino.appendChild(crear("p", "migas", '<a href="index.html">← Volver al inicio</a>'));
+    destino.appendChild(crear("p", "migas", '<a href="index.html">' + t("volverInicio") + "</a>"));
     destino.appendChild(crear("div", "meta-modulo",
-      '<span class="chip">Nivel ' + nivel.numero + ": " + nivel.nombre + "</span>" +
-      '<span class="chip">Módulo ' + modulo.id + " de " + MODULOS.length + "</span>" +
-      '<span class="chip">⏱ 15 minutos</span>'));
+      '<span class="chip">' + t("chipNivel", { n: nivel.numero, t: nivel.nombre }) + "</span>" +
+      '<span class="chip">' + t("chipModulo", { n: modulo.id, t: MODULOS.length }) + "</span>" +
+      '<span class="chip">' + t("chipMinutos") + "</span>"));
     destino.appendChild(crear("h1", "", modulo.titulo));
     destino.appendChild(crear("p", "", modulo.resumen));
 
     destino.appendChild(crear("ul", "plan-tiempo",
-      "<li><strong>1. Ver o leer</strong>≈ 7 minutos</li>" +
-      "<li><strong>2. Preguntas de repaso</strong>≈ 3 minutos</li>" +
-      "<li><strong>3. Práctica</strong>≈ 5 minutos</li>"));
+      "<li>" + t("plan1") + "</li><li>" + t("plan2") + "</li><li>" + t("plan3") + "</li>"));
 
     const objetivos = crear("div", "tarjeta");
-    objetivos.innerHTML = "<h2 style=\"margin-top:0\">En este módulo va a aprender a…</h2>" +
+    objetivos.innerHTML = '<h2 style="margin-top:0">' + t("objetivosTitulo") + "</h2>" +
       '<ul class="objetivos">' + modulo.objetivos.map(function (o) { return "<li>" + o + "</li>"; }).join("") + "</ul>";
     destino.appendChild(objetivos);
 
@@ -233,28 +286,28 @@
     const video = crear("section", "video");
     video.setAttribute("aria-labelledby", "titulo-video");
     if (modulo.video.youtubeId) {
-      video.innerHTML = '<h2 id="titulo-video" style="margin-top:0">🎬 Video de la clase</h2>' +
+      video.innerHTML = '<h2 id="titulo-video" style="margin-top:0">' + t("videoTitulo") + "</h2>" +
         '<div class="marco"><iframe src="https://www.youtube-nocookie.com/embed/' + encodeURIComponent(modulo.video.youtubeId) +
-        '" title="Video: ' + modulo.titulo + '" allowfullscreen loading="lazy"></iframe></div>';
+        '" title="' + t("videoIframe", { t: modulo.titulo }) + '" allowfullscreen loading="lazy"></iframe></div>';
     } else {
-      video.innerHTML = '<h2 id="titulo-video" style="margin-top:0">🎬 ¿Prefiere ver un video?</h2>' +
-        "<p>Puede buscar videos cortos sobre este tema en YouTube. Se abre en otra pestaña; para volver, cierre esa pestaña.</p>" +
+      video.innerHTML = '<h2 id="titulo-video" style="margin-top:0">' + t("videoBuscarTitulo") + "</h2>" +
+        "<p>" + t("videoTexto") + "</p>" +
         '<a class="boton" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query=' +
-        encodeURIComponent(modulo.video.busqueda) + '">Buscar videos sobre “' + modulo.titulo + '”</a>' +
-        "<p>Si prefiere leer, la lección de abajo cubre todo lo necesario. Use el botón <strong>🔊 Escuchar</strong> para que el sitio se la lea en voz alta.</p>";
+        encodeURIComponent(modulo.video.busqueda) + '">' + t("videoBoton", { t: modulo.titulo }) + "</a>" +
+        "<p>" + t("videoLeer") + "</p>";
     }
     destino.appendChild(video);
 
     // Lección
-    destino.appendChild(crear("h2", "", "📖 La lección"));
+    destino.appendChild(crear("h2", "", t("leccion")));
     modulo.secciones.forEach(function (s) {
       const sec = crear("section", "seccion-lectura");
       const titulo = crear("h3", "", s.titulo);
       const cuerpo = crear("div", "", s.html);
-      cuerpo.querySelectorAll("table").forEach(function (t) {
+      cuerpo.querySelectorAll("table").forEach(function (tabla) {
         const env = crear("div", "tabla-envoltura");
-        t.parentNode.insertBefore(env, t);
-        env.appendChild(t);
+        tabla.parentNode.insertBefore(env, tabla);
+        env.appendChild(tabla);
       });
       sec.appendChild(titulo);
       sec.appendChild(botonEscuchar(sec));
@@ -263,24 +316,24 @@
     });
 
     const recordar = crear("section", "recordar");
-    recordar.innerHTML = "<h2>📌 Para recordar</h2><ul>" +
+    recordar.innerHTML = "<h2>" + t("recordar") + "</h2><ul>" +
       modulo.recordar.map(function (r) { return "<li>" + r + "</li>"; }).join("") + "</ul>";
     recordar.insertBefore(botonEscuchar(recordar), recordar.children[1]);
     destino.appendChild(recordar);
 
     // Preguntas
-    destino.appendChild(crear("h2", "", "✏️ Preguntas de repaso"));
-    destino.appendChild(crear("p", "", "Elija una respuesta en cada pregunta. Le diremos enseguida si es correcta y por qué. ¡Equivocarse también es aprender!"));
+    destino.appendChild(crear("h2", "", t("preguntasTitulo")));
+    destino.appendChild(crear("p", "", t("preguntasIntro")));
     const cuestionario = crear("div", "tarjeta");
     destino.appendChild(cuestionario);
     renderCuestionario(modulo, cuestionario);
 
     // Ejercicios
-    destino.appendChild(crear("h2", "", "🙌 Ejercicios prácticos"));
-    destino.appendChild(crear("p", "", "Hágalos con calma, con el teléfono o la computadora a mano. Cuando termine cada uno, márquelo como hecho."));
+    destino.appendChild(crear("h2", "", t("ejerciciosTitulo")));
+    destino.appendChild(crear("p", "", t("ejerciciosIntro")));
     modulo.ejercicios.forEach(function (ej, i) {
       const tarjeta = crear("section", "tarjeta ejercicio");
-      tarjeta.innerHTML = "<h3>Ejercicio " + (i + 1) + ": " + ej.titulo + "</h3>" +
+      tarjeta.innerHTML = "<h3>" + t("ejercicio", { n: i + 1, t: ej.titulo }) + "</h3>" +
         "<ol>" + ej.pasos.map(function (p) { return "<li>" + p + "</li>"; }).join("") + "</ol>" +
         (ej.consejo ? '<p class="consejo">💡 ' + ej.consejo + "</p>" : "");
       const etiqueta = crear("label", "marcar-hecho no-imprimir");
@@ -294,7 +347,7 @@
         guardarProgresoModulo(modulo.id, p);
       });
       etiqueta.appendChild(casilla);
-      etiqueta.appendChild(document.createTextNode("Ya hice este ejercicio"));
+      etiqueta.appendChild(document.createTextNode(t("yaHice")));
       tarjeta.appendChild(etiqueta);
       destino.appendChild(tarjeta);
     });
@@ -304,12 +357,12 @@
 
     // Navegación
     const nav = crear("nav", "navegacion-modulos no-imprimir");
-    nav.setAttribute("aria-label", "Módulos anterior y siguiente");
+    nav.setAttribute("aria-label", t("navAria"));
     const anterior = MODULOS.find(function (m) { return m.id === modulo.id - 1; });
     const siguiente = MODULOS.find(function (m) { return m.id === modulo.id + 1; });
     nav.innerHTML =
-      (anterior ? '<a class="boton grande" href="modulo.html?m=' + anterior.id + '">← Módulo ' + anterior.id + "</a>" : '<a class="boton grande" href="index.html">← Inicio</a>') +
-      (siguiente ? '<a class="boton grande principal" href="modulo.html?m=' + siguiente.id + '">Módulo ' + siguiente.id + " →</a>" : '<a class="boton grande principal" href="diploma.html">🎓 Mi diploma</a>');
+      (anterior ? '<a class="boton grande" href="modulo.html?m=' + anterior.id + '">' + t("anterior", { n: anterior.id }) + "</a>" : '<a class="boton grande" href="index.html">' + t("inicio") + "</a>") +
+      (siguiente ? '<a class="boton grande principal" href="modulo.html?m=' + siguiente.id + '">' + t("siguiente", { n: siguiente.id }) + "</a>" : '<a class="boton grande principal" href="diploma.html">' + t("miDiploma") + "</a>");
     destino.appendChild(nav);
 
     prepararCopiar(destino);
@@ -335,10 +388,10 @@
         etiqueta.appendChild(radio);
         etiqueta.appendChild(crear("span", "", texto));
         radio.addEventListener("change", function () {
-          const datos = progresoModulo(modulo.id);
-          datos.respuestas = datos.respuestas || {};
-          datos.respuestas[i] = j;
-          guardarProgresoModulo(modulo.id, datos);
+          const d = progresoModulo(modulo.id);
+          d.respuestas = d.respuestas || {};
+          d.respuestas[i] = j;
+          guardarProgresoModulo(modulo.id, d);
           mostrarCorreccion(fieldset, respuesta, preg, j);
           actualizarResultado(modulo, contenedor);
           actualizarAvisoCompleto(modulo);
@@ -357,12 +410,12 @@
     });
 
     contenedor.appendChild(crear("p", "resultado-cuestionario", ""));
-    const reintentar = crear("button", "boton no-imprimir", "↺ Volver a responder las preguntas");
+    const reintentar = crear("button", "boton no-imprimir", t("reintentar"));
     reintentar.type = "button";
     reintentar.addEventListener("click", function () {
-      const datos = progresoModulo(modulo.id);
-      datos.respuestas = {};
-      guardarProgresoModulo(modulo.id, datos);
+      const d = progresoModulo(modulo.id);
+      d.respuestas = {};
+      guardarProgresoModulo(modulo.id, d);
       renderCuestionario(modulo, contenedor);
       actualizarAvisoCompleto(modulo);
     });
@@ -379,8 +432,7 @@
     });
     const bien = elegida === preg.correcta;
     respuesta.className = "respuesta " + (bien ? "bien" : "mal");
-    respuesta.innerHTML = (bien ? "✔ ¡Correcto!" : "✘ No es esa. La respuesta correcta está marcada en verde.") +
-      "<span>" + preg.explicacion + "</span>";
+    respuesta.innerHTML = (bien ? t("correcto") : t("incorrecto")) + "<span>" + preg.explicacion + "</span>";
   }
 
   function actualizarResultado(modulo, contenedor) {
@@ -390,10 +442,10 @@
     const total = modulo.preguntas.length;
     const resultado = contenedor.querySelector(".resultado-cuestionario");
     if (respondidas.length < total) {
-      resultado.textContent = "Respondió " + respondidas.length + " de " + total + " preguntas.";
+      resultado.textContent = t("respondidas", { r: respondidas.length, t: total });
     } else {
-      resultado.textContent = "Resultado: " + aciertos + " de " + total + " correctas. " +
-        (aciertos === total ? "¡Excelente! 🎉" : aciertos >= total / 2 ? "¡Muy bien! Puede repasar la lección y volver a intentarlo." : "Le recomendamos repasar la lección con calma y volver a intentarlo.");
+      resultado.textContent = t("resultado", { a: aciertos, t: total }) +
+        (aciertos === total ? t("excelente") : aciertos >= total / 2 ? t("muyBien") : t("repasar"));
     }
   }
 
@@ -402,9 +454,7 @@
     if (!aviso) return;
     if (moduloCompleto(modulo)) {
       aviso.className = "aviso-completo";
-      aviso.textContent = cantidadCompletos() === MODULOS.length
-        ? "🎓 ¡Terminó todo el curso! Ya puede imprimir su diploma."
-        : "✔ ¡Módulo " + modulo.id + " completado! Cuando quiera, siga con el próximo.";
+      aviso.textContent = cantidadCompletos() === MODULOS.length ? t("avisoCurso") : t("avisoModulo", { n: modulo.id });
     } else {
       aviso.className = "";
       aviso.textContent = "";
@@ -416,7 +466,7 @@
     const destino = document.getElementById("glosario");
     if (!destino) return;
     const lista = crear("dl", "glosario-lista");
-    GLOSARIO.slice().sort(function (a, b) { return a.termino.localeCompare(b.termino, "es"); }).forEach(function (g) {
+    GLOSARIO.slice().sort(function (a, b) { return a.termino.localeCompare(b.termino, IDIOMAS[idioma].fecha); }).forEach(function (g) {
       lista.appendChild(crear("dt", "", g.termino));
       lista.appendChild(crear("dd", "", g.definicion));
     });
@@ -433,34 +483,32 @@
     const estado = document.getElementById("estado-diploma");
 
     if (faltan.length) {
-      estado.innerHTML = "<p>Completó <strong>" + hechos + " de " + MODULOS.length + "</strong> módulos. " +
-        "Para recibir el diploma, responda las preguntas de repaso de los módulos que faltan:</p><ul>" +
-        faltan.map(function (m) { return '<li><a href="modulo.html?m=' + m.id + '">Módulo ' + m.id + ": " + m.titulo + "</a></li>"; }).join("") +
+      estado.innerHTML = "<p>" + t("diplomaFaltan", { h: hechos, t: MODULOS.length }) + "</p><ul>" +
+        faltan.map(function (m) { return '<li><a href="modulo.html?m=' + m.id + '">' + t("moduloTarjeta", { n: m.id, t: m.titulo }) + "</a></li>"; }).join("") +
         "</ul>";
       destino.hidden = true;
       return;
     }
 
-    estado.innerHTML = "<p>🎉 ¡Felicitaciones! Completó los " + MODULOS.length + " módulos. Escriba su nombre y toque “Imprimir”.</p>";
+    estado.innerHTML = "<p>" + t("diplomaListo", { t: MODULOS.length }) + "</p>";
     const campo = document.getElementById("campo-nombre");
     const nombre = document.getElementById("nombre-diploma");
-    const ajustes = leer(CLAVE_AJUSTES, {});
-    campo.value = ajustes.nombre || "";
+    campo.value = ajustes().nombre || "";
     nombre.textContent = campo.value || " ";
     campo.addEventListener("input", function () {
       nombre.textContent = campo.value || " ";
-      const a = leer(CLAVE_AJUSTES, {});
-      a.nombre = campo.value;
-      guardar(CLAVE_AJUSTES, a);
+      guardarAjuste("nombre", campo.value);
     });
     document.getElementById("fecha-diploma").textContent =
-      new Date().toLocaleDateString("es", { day: "numeric", month: "long", year: "numeric" });
+      new Date().toLocaleDateString(IDIOMAS[idioma].fecha, { day: "numeric", month: "long", year: "numeric" });
     document.getElementById("btn-imprimir").addEventListener("click", function () { window.print(); });
   }
 
   // ── Inicio ──
   aplicarAjustes();
+  document.documentElement.lang = IDIOMAS[idioma].htmlLang;
   document.addEventListener("DOMContentLoaded", function () {
+    traducirPagina();
     prepararHerramientas();
     renderPortada();
     renderModulo();

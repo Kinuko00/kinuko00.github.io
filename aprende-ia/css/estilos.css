@@ -56,6 +56,14 @@ body {
   line-height: 1.6;
 }
 
+/* Chino: tipografía con caracteres chinos, sin cursivas (se leen mal) */
+:root[lang="zh-CN"] body {
+  font-family: "Atkinson Hyperlegible", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  line-height: 1.75;
+}
+:root[lang="zh-CN"] em, :root[lang="zh-CN"] .consejo { font-style: normal; }
+:root[lang="zh-CN"] em { font-weight: 700; }
+
 a { color: var(--primario); text-underline-offset: 3px; }
 a:focus-visible, button:focus-visible, input:focus-visible {
   outline: 4px solid var(--acento);
@@ -216,7 +224,7 @@ li { margin-bottom: .4rem; }
   background: var(--superficie); border: 2px solid var(--primario); border-radius: 10px;
   padding: .7rem .9rem; margin: .5rem 0; font-style: normal;
 }
-.prompt::before { content: "💬 Para escribir o decir:"; display: block; font-size: .78rem; font-weight: 700; color: var(--texto-suave); }
+.prompt::before { content: attr(data-etiqueta); display: block; font-size: .78rem; font-weight: 700; color: var(--texto-suave); }
 .prompt .copiar { margin-top: .5rem; min-height: 44px; font-size: .82rem; }
 
 .tabla-envoltura { overflow-x: auto; }

@@ -1221,3 +1221,8 @@ const GLOSARIO = [
   { termino: "Spam", definicion: "Mensajes basura o no deseados, que el correo suele separar automáticamente." },
   { termino: "Privacidad", definicion: "El derecho a cuidar su información personal y decidir con quién la comparte." }
 ];
+
+// Contenido por idioma. El chino se agrega en contenido-zh.js.
+const CONTENIDO = {
+  es: { niveles: NIVELES, modulos: MODULOS, glosario: GLOSARIO }
+};

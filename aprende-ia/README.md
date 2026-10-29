@@ -1,6 +1,7 @@
 # Aprendamos IA 🌱
 
-Curso web de inteligencia artificial para personas de **65 a 70 años**, desde cero.
+Curso web de inteligencia artificial para personas de **65 a 70 años**, desde cero,
+en **español** y **chino mandarín** (一起学AI, caracteres simplificados).
 Son **10 módulos de unos 15 minutos** en 4 niveles:
 
 | Nivel | Módulos |
@@ -22,8 +23,17 @@ glosario y un diploma imprimible al terminar.
 
 Es un sitio estático, sin instalación. Abra `index.html` en el navegador, o publíquelo con GitHub Pages.
 
+## Idiomas
+
+El botón **🌐 中文 / 🌐 Español** del encabezado cambia el idioma, y la elección se recuerda.
+Si el navegador está en chino, el sitio abre en chino. También se puede forzar con `?lang=zh` o `?lang=es`
+en la dirección (por ejemplo `index.html?lang=zh`). El progreso se comparte entre los dos idiomas.
+
 ## Cómo editar
 
-- Todo el contenido está en `js/contenido.js` (módulos, preguntas, ejercicios y glosario).
+- Contenido en español: `js/contenido.js`. Contenido en chino: `js/contenido-zh.js`.
+  Los dos archivos tienen la misma estructura (mismos módulos, preguntas y respuestas correctas);
+  si cambia una pregunta en un idioma, cámbiela también en el otro.
+- Textos de la interfaz (botones, títulos, mensajes): `js/textos.js`.
 - Para incrustar un video propio en un módulo, complete `video.youtubeId` con el código del video de YouTube.
   Si queda vacío, se muestra un botón para buscar videos sobre el tema.
