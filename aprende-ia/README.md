@@ -1,6 +1,6 @@
 # Aprendamos IA 🌱
 
-Curso web de inteligencia artificial para personas de **65 a 70 años**, desde cero,
+Curso web de inteligencia artificial desde cero,
 en **español** y **chino mandarín** (一起学AI, caracteres simplificados).
 Son **10 módulos de unos 15 minutos** en 4 niveles:
 
