@@ -282,24 +282,9 @@
       '<ul class="objetivos">' + modulo.objetivos.map(function (o) { return "<li>" + o + "</li>"; }).join("") + "</ul>";
     destino.appendChild(objetivos);
 
-    // Video
-    const video = crear("section", "video");
-    video.setAttribute("aria-labelledby", "titulo-video");
-    if (modulo.video.youtubeId) {
-      video.innerHTML = '<h2 id="titulo-video" style="margin-top:0">' + t("videoTitulo") + "</h2>" +
-        '<div class="marco"><iframe src="https://www.youtube-nocookie.com/embed/' + encodeURIComponent(modulo.video.youtubeId) +
-        '" title="' + t("videoIframe", { t: modulo.titulo }) + '" allowfullscreen loading="lazy"></iframe></div>';
-    } else {
-      video.innerHTML = '<h2 id="titulo-video" style="margin-top:0">' + t("videoBuscarTitulo") + "</h2>" +
-        "<p>" + t("videoTexto") + "</p>" +
-        '<a class="boton" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query=' +
-        encodeURIComponent(modulo.video.busqueda) + '">' + t("videoBoton", { t: modulo.titulo }) + "</a>" +
-        "<p>" + t("videoLeer") + "</p>";
-    }
-    destino.appendChild(video);
-
     // Lección
     destino.appendChild(crear("h2", "", t("leccion")));
+    destino.appendChild(crear("p", "", t("leccionAyuda")));
     modulo.secciones.forEach(function (s) {
       const sec = crear("section", "seccion-lectura");
       const titulo = crear("h3", "", s.titulo);
@@ -454,7 +439,8 @@
     if (!aviso) return;
     if (moduloCompleto(modulo)) {
       aviso.className = "aviso-completo";
-      aviso.textContent = cantidadCompletos() === MODULOS.length ? t("avisoCurso") : t("avisoModulo", { n: modulo.id });
+      aviso.innerHTML = (cantidadCompletos() === MODULOS.length ? t("avisoCurso") : t("avisoModulo", { n: modulo.id })) +
+        '<br><a class="boton no-imprimir" style="margin-top:.8rem" href="avance.html">' + t("avisoGuardar") + "</a>";
     } else {
       aviso.className = "";
       aviso.textContent = "";
@@ -504,6 +490,124 @@
     document.getElementById("btn-imprimir").addEventListener("click", function () { window.print(); });
   }
 
+  // ── Código de avance ──
+  // Todo el progreso (cada respuesta y cada ejercicio) se guarda en un número
+  // y se escribe con letras y números fáciles de leer (sin 0/O ni 1/I).
+  // El último carácter es un control para detectar errores al copiarlo.
+  const ALFABETO = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+  const SIN_RESPUESTA = 4;
+
+  function largoCodigo() {
+    let maximo = 1n;
+    MODULOS.forEach(function (m) {
+      maximo *= 5n ** BigInt(m.preguntas.length);
+      maximo *= 2n ** BigInt(m.ejercicios.length);
+    });
+    return (maximo - 1n).toString(32).length;
+  }
+
+  function caracterControl(cuerpo) {
+    let suma = 0;
+    for (let i = 0; i < cuerpo.length; i++) suma += ALFABETO.indexOf(cuerpo[i]) * (i + 1);
+    return ALFABETO[suma % 32];
+  }
+
+  function generarCodigo() {
+    let n = 0n;
+    MODULOS.forEach(function (m) {
+      const p = progresoModulo(m.id);
+      m.preguntas.forEach(function (q, i) {
+        const v = p.respuestas && p.respuestas[i] !== undefined ? p.respuestas[i] : SIN_RESPUESTA;
+        n = n * 5n + BigInt(v);
+      });
+      m.ejercicios.forEach(function (e, i) {
+        n = n * 2n + (p.ejercicios && p.ejercicios[i] ? 1n : 0n);
+      });
+    });
+    let cuerpo = "";
+    for (let i = 0; i < largoCodigo(); i++) {
+      cuerpo = ALFABETO[Number(n % 32n)] + cuerpo;
+      n /= 32n;
+    }
+    return (cuerpo + caracterControl(cuerpo)).match(/.{1,4}/g).join("-");
+  }
+
+  // Devuelve el progreso que representa el código, o null si no es válido.
+  function leerCodigo(texto) {
+    const limpio = texto.toUpperCase().replace(/[^0-9A-Z]/g, "");
+    const largo = largoCodigo();
+    if (limpio.length !== largo + 1) return null;
+    const cuerpo = limpio.slice(0, largo);
+    if ([].some.call(cuerpo, function (c) { return ALFABETO.indexOf(c) < 0; })) return null;
+    if (caracterControl(cuerpo) !== limpio[largo]) return null;
+
+    let n = 0n;
+    for (let i = 0; i < cuerpo.length; i++) n = n * 32n + BigInt(ALFABETO.indexOf(cuerpo[i]));
+    const resultado = {};
+    for (let k = MODULOS.length - 1; k >= 0; k--) {
+      const m = MODULOS[k];
+      const datosModulo = { respuestas: {}, ejercicios: {} };
+      for (let i = m.ejercicios.length - 1; i >= 0; i--) {
+        if (n % 2n === 1n) datosModulo.ejercicios[i] = true;
+        n /= 2n;
+      }
+      for (let i = m.preguntas.length - 1; i >= 0; i--) {
+        const v = Number(n % 5n);
+        n /= 5n;
+        if (v === SIN_RESPUESTA) continue;
+        if (v >= m.preguntas[i].opciones.length) return null;
+        datosModulo.respuestas[i] = v;
+      }
+      resultado[m.id] = datosModulo;
+    }
+    return n === 0n ? resultado : null;
+  }
+
+  function renderAvance() {
+    const destino = document.getElementById("avance");
+    if (!destino) return;
+
+    const resumen = document.getElementById("resumen-avance");
+    const codigo = document.getElementById("codigo-avance");
+    function mostrar() {
+      resumen.textContent = t("avanceResumen", { h: cantidadCompletos(), t: MODULOS.length });
+      codigo.textContent = generarCodigo();
+    }
+    mostrar();
+
+    const copiar = document.getElementById("btn-copiar-codigo");
+    copiar.addEventListener("click", function () {
+      const texto = codigo.textContent;
+      const listo = function () {
+        copiar.textContent = t("codigoCopiado");
+        setTimeout(function () { copiar.textContent = t("codigoCopiar"); }, 3000);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(texto).then(listo, function () { copiarRespaldo(texto); listo(); });
+      } else {
+        copiarRespaldo(texto); listo();
+      }
+    });
+    document.getElementById("btn-imprimir-codigo").addEventListener("click", function () { window.print(); });
+
+    const formulario = document.getElementById("form-recuperar");
+    const mensaje = document.getElementById("mensaje-recuperar");
+    formulario.addEventListener("submit", function (evento) {
+      evento.preventDefault();
+      const nuevo = leerCodigo(document.getElementById("campo-codigo").value);
+      if (!nuevo) {
+        mensaje.className = "mensaje mal";
+        mensaje.textContent = t("recuperarError");
+        return;
+      }
+      if (Object.keys(progreso()).length && !window.confirm(t("recuperarConfirmar"))) return;
+      guardar(CLAVE_PROGRESO, nuevo);
+      mostrar();
+      mensaje.className = "mensaje bien";
+      mensaje.textContent = t("recuperarOk", { h: cantidadCompletos(), t: MODULOS.length });
+    });
+  }
+
   // ── Inicio ──
   aplicarAjustes();
   document.documentElement.lang = IDIOMAS[idioma].htmlLang;
@@ -514,6 +618,7 @@
     renderModulo();
     renderGlosario();
     renderDiploma();
+    renderAvance();
     if (voz) voz.getVoices();
     window.addEventListener("pagehide", detenerLectura);
   });

@@ -12,12 +12,13 @@ Son **10 módulos de unos 15 minutos** en 4 niveles:
 | 4. Profundizando | 9. ¿Cómo funciona la IA por dentro? · 10. Mi plan personal con la IA |
 
 Cada módulo tiene: objetivos, plan de tiempo (≈7 min de lección, ≈3 de preguntas, ≈5 de práctica),
-espacio para video, lección con botón **🔊 Escuchar** (lectura en voz alta), resumen “Para recordar”,
+lección de texto con botón **🔊 Escuchar** (lectura en voz alta), resumen “Para recordar”,
 **preguntas de repaso** con corrección y explicación inmediatas, y **ejercicios prácticos** con pedidos de ejemplo
 que se copian con un toque.
 
 También incluye: ajuste de tamaño de letra y alto contraste, progreso guardado en el navegador,
-glosario y un diploma imprimible al terminar.
+glosario, un diploma imprimible al terminar y una página **💾 Mi avance** con un código para
+guardar el progreso y recuperarlo en otro dispositivo.
 
 ## Cómo verlo
 
@@ -35,10 +36,10 @@ en la dirección (por ejemplo `index.html?lang=zh`). El progreso se comparte ent
   Los dos archivos tienen la misma estructura (mismos módulos, preguntas y respuestas correctas);
   si cambia una pregunta en un idioma, cámbiela también en el otro.
 - Textos de la interfaz (botones, títulos, mensajes): `js/textos.js`.
-- Para incrustar un video propio en un módulo, complete `video.youtubeId` con el código del video de YouTube.
-  Si queda vacío, se muestra un botón para buscar videos sobre el tema.
+- El código de avance depende de la cantidad de preguntas, opciones y ejercicios de cada módulo.
+  Si agrega o quita preguntas o ejercicios, los códigos anotados antes dejan de servir.
 
 ## Al publicar cambios
 
-Las páginas cargan los archivos con un número de versión (`?v=3`). Después de cambiar un archivo de `css/` o `js/`,
-suba ese número en los cuatro `.html` (por ejemplo a `?v=4`) para que los navegadores no muestren la versión anterior.
+Las páginas cargan los archivos con un número de versión (`?v=4`). Después de cambiar un archivo de `css/` o `js/`,
+suba ese número en los cinco `.html` (por ejemplo a `?v=5`) para que los navegadores no muestren la versión anterior.

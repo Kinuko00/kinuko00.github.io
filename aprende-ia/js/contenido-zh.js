@@ -25,7 +25,6 @@ CONTENIDO.zh = {
         "分清现实中的AI和电影里的AI。",
         "消除恐惧：AI是一种工具，就像计算器一样。"
       ],
-      video: { youtubeId: "", busqueda: "什么是人工智能 通俗易懂" },
       secciones: [
         {
           titulo: "一个简单的概念",
@@ -133,7 +132,6 @@ CONTENIDO.zh = {
         "明白您其实早已是AI的用户，只是自己不知道。",
         "增强信心，迈出下一步。"
       ],
-      video: { youtubeId: "", busqueda: "人工智能在日常生活中的例子" },
       secciones: [
         {
           titulo: "好消息：您已经在用AI了",
@@ -240,7 +238,6 @@ CONTENIDO.zh = {
         "知道怎么在手机或电脑上使用其中一个。",
         "认识AI助手界面上的各个部分。"
       ],
-      video: { youtubeId: "", busqueda: "怎么用AI助手 入门教程" },
       secciones: [
         {
           titulo: "什么是AI助手？",
@@ -363,7 +360,6 @@ CONTENIDO.zh = {
         "请AI修改或改进它的回答。",
         "把对话当成一来一回的交流。"
       ],
-      video: { youtubeId: "", busqueda: "怎么向AI提问 提示词 入门" },
       secciones: [
         {
           titulo: "像对一个新助手那样说话",
@@ -482,7 +478,6 @@ CONTENIDO.zh = {
         "请AI解释难懂的文字。",
         "安排活动、购物和旅行。"
       ],
-      video: { youtubeId: "", busqueda: "人工智能 日常生活 实用技巧" },
       secciones: [
         {
           titulo: "写消息和写信",
@@ -597,7 +592,6 @@ CONTENIDO.zh = {
         "发一张照片，并针对照片提问。",
         "了解摄像头配合AI的实用用法。"
       ],
-      video: { youtubeId: "", busqueda: "AI助手 语音对话 拍照识别 教程" },
       secciones: [
         {
           titulo: "打字费劲？那就说吧！",
@@ -709,7 +703,6 @@ CONTENIDO.zh = {
         "掌握三种简单的核实方法。",
         "知道哪些事情一定要请教专业人士。"
       ],
-      video: { youtubeId: "", busqueda: "AI为什么会出错 AI幻觉 通俗解释" },
       secciones: [
         {
           titulo: "说得很肯定……却是错的",
@@ -833,7 +826,6 @@ CONTENIDO.zh = {
         "识别利用AI的诈骗：克隆声音、假视频和假照片。",
         "和家人一起制定一个有暗号的安全计划。"
       ],
-      video: { youtubeId: "", busqueda: "AI诈骗 声音克隆 如何防范" },
       secciones: [
         {
           titulo: "绝不能透露的信息",
@@ -961,7 +953,6 @@ CONTENIDO.zh = {
         "明白它为什么有时会出错。",
         "认识新闻里常听到的几个词。"
       ],
-      video: { youtubeId: "", busqueda: "ChatGPT是怎么工作的 通俗讲解" },
       secciones: [
         {
           titulo: "靠大量阅读来学习",
@@ -1083,7 +1074,6 @@ CONTENIDO.zh = {
         "从头到尾完成一个小小的个人项目。",
         "知道今后怎么继续学习。"
       ],
-      video: { youtubeId: "", busqueda: "用AI 生活 小项目 入门" },
       secciones: [
         {
           titulo: "回顾走过的路",
