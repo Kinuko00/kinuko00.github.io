@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Glosario · Aprendamos IA</title>
+  <meta name="description" content="Curso gratuito y paso a paso de inteligencia artificial para personas de 65 a 70 años, en español y chino mandarín: lecciones de 15 minutos, preguntas de repaso y ejercicios prácticos.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Noto+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/estilos.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌱</text></svg>">
+</head>
+<body data-titulo="tituloGlosario">
+  <a class="saltar" href="#contenido" data-t="saltar">Saltar al contenido</a>
+  <header class="encabezado">
+    <div class="contenedor">
+      <a class="marca" href="index.html"><span aria-hidden="true">🌱</span> <span data-t="marca">Aprendamos IA</span></a>
+      <div class="herramientas" role="group" aria-label="Ajustes de lectura" data-t-aria="ajustesLectura">
+        <button type="button" id="btn-idioma" lang="zh-CN" aria-label="Cambiar el idioma a chino mandarín" data-t-aria="cambiarIdioma">🌐 中文</button>
+        <button type="button" id="btn-letra-menos" aria-label="Achicar la letra" data-t-aria="letraMenos">A−</button>
+        <button type="button" id="btn-letra-mas" aria-label="Agrandar la letra" data-t-aria="letraMas">A+</button>
+        <button type="button" id="btn-contraste" aria-pressed="false" data-t="contraste">🌓 Contraste</button>
+        <a class="boton" href="glosario.html" data-t="glosario">📚 Glosario</a>
+      </div>
+    </div>
+  </header>
+  <main id="contenido" class="contenedor">
+    <p class="migas"><a href="index.html" data-t="volverInicio">← Volver al inicio</a></p>
+    <h1 data-t="glosarioTitulo">📚 Glosario: palabras nuevas</h1>
+    <p data-t="glosarioIntro">Las palabras que aparecen en el curso, explicadas en forma sencilla.</p>
+    <section id="glosario" class="tarjeta"></section>
+  </main>
+  <footer class="pie">
+    <div class="contenedor">
+      <p data-t="pie">Aprendamos IA · Un curso para aprender a su ritmo. Su progreso se guarda solo en este dispositivo.</p>
+    </div>
+  </footer>
+  <script src="js/textos.js"></script>
+  <script src="js/contenido.js"></script>
+  <script src="js/contenido-zh.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
