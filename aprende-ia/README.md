@@ -37,3 +37,8 @@ en la dirección (por ejemplo `index.html?lang=zh`). El progreso se comparte ent
 - Textos de la interfaz (botones, títulos, mensajes): `js/textos.js`.
 - Para incrustar un video propio en un módulo, complete `video.youtubeId` con el código del video de YouTube.
   Si queda vacío, se muestra un botón para buscar videos sobre el tema.
+
+## Al publicar cambios
+
+Las páginas cargan los archivos con un número de versión (`?v=3`). Después de cambiar un archivo de `css/` o `js/`,
+suba ese número en los cuatro `.html` (por ejemplo a `?v=4`) para que los navegadores no muestren la versión anterior.
