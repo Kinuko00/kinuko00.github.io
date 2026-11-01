@@ -16,6 +16,8 @@ grpS = "Sesión"
 sessInput = input.session("0400-0900", "Rango (hora NY)", group = grpS)
 endHour   = input.int(16, "Extender líneas hasta (hora)", minval = 0, maxval = 23, group = grpS)
 endMinute = input.int(0, "Extender líneas hasta (minuto)", minval = 0, maxval = 59, group = grpS)
+alertHour = input.int(9, "Alertas desde (hora)", minval = 0, maxval = 23, group = grpS)
+alertMin  = input.int(30, "Alertas desde (minuto)", minval = 0, maxval = 59, group = grpS)
 maxDays   = input.int(5, "Días a mostrar", minval = 1, maxval = 100, group = grpS)
 
 grpV = "Estilo"
@@ -41,6 +43,7 @@ var float sH     = na
 var float sL     = na
 var int   startT = na
 var int   endT   = na
+var int   alertT = na
 
 var line  hLine = na
 var line  lLine = na
@@ -62,6 +65,7 @@ if sessStart
     // Si la hora de corte es antes del inicio, se extiende al día siguiente
     if endT <= startT
         endT += 24 * 60 * 60 * 1000
+    alertT := timestamp(TZ, year(time, TZ), month(time, TZ), dayofmonth(time, TZ), alertHour, alertMin)
 
     hLine := line.new(startT, sH, endT, sH, xloc.bar_time, color = colHigh, style = lineStyle, width = lineWidth)
     lLine := line.new(startT, sL, endT, sL, xloc.bar_time, color = colLow,  style = lineStyle, width = lineWidth)
@@ -117,7 +121,8 @@ else if inSess
 plot(sH, "PM High", colHigh, display = display.data_window)
 plot(sL, "PM Low",  colLow,  display = display.data_window)
 
-afterSess = not inSess and not na(sH) and time <= endT
+// Alertas activas solo desde la hora elegida (9:30 ET por defecto) hasta el corte
+afterSess = not inSess and not na(sH) and time >= alertT and time <= endT
 crossUp   = ta.crossover(close, sH)
 crossDn   = ta.crossunder(close, sL)
 alertcondition(afterSess and crossUp,  "Ruptura PM High", "NQ rompió el PM High (4-9 AM ET)")
