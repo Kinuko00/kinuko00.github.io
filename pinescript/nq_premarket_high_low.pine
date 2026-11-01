@@ -118,8 +118,10 @@ plot(sH, "PM High", colHigh, display = display.data_window)
 plot(sL, "PM Low",  colLow,  display = display.data_window)
 
 afterSess = not inSess and not na(sH) and time <= endT
-alertcondition(afterSess and ta.crossover(close, sH),  "Ruptura PM High", "NQ rompió el PM High (4-9 AM ET)")
-alertcondition(afterSess and ta.crossunder(close, sL), "Ruptura PM Low",  "NQ rompió el PM Low (4-9 AM ET)")
+crossUp   = ta.crossover(close, sH)
+crossDn   = ta.crossunder(close, sL)
+alertcondition(afterSess and crossUp,  "Ruptura PM High", "NQ rompió el PM High (4-9 AM ET)")
+alertcondition(afterSess and crossDn, "Ruptura PM Low",  "NQ rompió el PM Low (4-9 AM ET)")
 
 // Aviso si la temporalidad es demasiado grande
 if barstate.islast and timeframe.in_seconds() > 3600
