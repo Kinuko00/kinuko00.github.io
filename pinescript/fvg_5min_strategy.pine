@@ -1,0 +1,222 @@
+//@version=6
+// ============================================================================
+//  Fair Value Gaps (FVG) - velas de 5 minutos
+//  - Detecta FVG alcistas y bajistas en velas de 5 min (temporalidad configurable).
+//  - Funciona en gráficos de 5m o menores (1m, 2m, 3m...): los FVG siempre se
+//    calculan con velas de 5 min ya cerradas, así que no repinta.
+//  - FVG alcista: low de la vela 3 > high de la vela 1.
+//  - FVG bajista: high de la vela 3 < low de la vela 1.
+//  - Las zonas se extienden hacia la derecha hasta que el precio las mitiga.
+//  - Señal de entrada (LONG/SHORT) cuando el precio regresa al FVG y lo
+//    respeta (ver grupo "Señal de entrada").
+//
+//  VERSIÓN ESTRATEGIA: misma lógica que el indicador, pero abre operaciones
+//  reales en el Probador de estrategias para medir % de aciertos y ganancias.
+//  - 1 contrato por operación, una operación a la vez.
+//  - Entra a la apertura de la vela siguiente a la señal.
+//  - Sale en el SL / TP, o al final del horario si está activado.
+//  - Comisión y slippage configurables en Ajustes > Propiedades.
+// ============================================================================
+strategy("FVG 5 min - Estrategia", shorttitle = "FVG 5m Strat", overlay = true,
+     max_boxes_count = 500, max_lines_count = 500, max_labels_count = 500,
+     initial_capital = 50000, default_qty_type = strategy.fixed, default_qty_value = 1,
+     commission_type = strategy.commission.cash_per_contract, commission_value = 2.5,
+     slippage = 1, pyramiding = 0, calc_on_every_tick = false)
+
+// ---------------------------------------------------------------- Inputs ----
+grpD = "Detección"
+tf          = input.timeframe("5", "Temporalidad de las velas", group = grpD)
+minTicks    = input.int(4, "Tamaño mínimo del FVG (ticks)", minval = 0, group = grpD,
+     tooltip = "En NQ 1 tick = 0.25 puntos. 4 ticks = 1 punto.")
+showBull    = input.bool(true, "Mostrar FVG alcistas", group = grpD)
+showBear    = input.bool(true, "Mostrar FVG bajistas", group = grpD)
+maxFvg      = input.int(30, "Máximo de FVG en el gráfico", minval = 1, maxval = 250, group = grpD)
+
+grpM = "Mitigación"
+mitMode     = input.string("Llenado completo", "Se mitiga cuando el precio...",
+     options = ["Toca la zona", "Llega al 50% (CE)", "Llenado completo"], group = grpM)
+hideMit     = input.bool(false, "Borrar FVG mitigados", group = grpM,
+     tooltip = "Si está apagado, el FVG mitigado se queda en el gráfico (más tenue) y deja de extenderse.")
+
+grpE = "Señal de entrada"
+showSig     = input.bool(true, "Mostrar señales de entrada", group = grpE)
+confMode    = input.string("Cierre fuera de la zona", "Confirmación",
+     options = ["Cierre fuera de la zona", "Vela de rechazo (cierre sobre/bajo 50%)"], group = grpE,
+     tooltip = "LONG: el precio entra al FVG alcista y la vela cierra por encima del FVG (o vela alcista que cierra sobre el 50%). SHORT: al revés en un FVG bajista.")
+maxWait     = input.int(3, "Velas máximas para confirmar después del toque", minval = 0, maxval = 50, group = grpE)
+useSess     = input.bool(true, "Solo dentro del horario", inline = "ses", group = grpE)
+entrySess   = input.session("0930-1600", "", inline = "ses", group = grpE)
+slBuffer    = input.int(2, "Margen del SL fuera del FVG (ticks)", minval = 0, group = grpE)
+rr          = input.float(2.0, "Take Profit (R:R)", minval = 0.5, step = 0.5, group = grpE)
+showSLTP    = input.bool(false, "Dibujar SL / TP", group = grpE)
+flatEOD     = input.bool(true, "Cerrar posición al terminar el horario", group = grpE)
+colLong     = input.color(color.new(color.lime, 0), "Color LONG", group = grpE)
+colShort    = input.color(color.new(color.fuchsia, 0), "Color SHORT", group = grpE)
+
+grpV = "Estilo"
+colBull     = input.color(color.new(color.green, 80), "Color FVG alcista", group = grpV)
+colBear     = input.color(color.new(color.red, 80), "Color FVG bajista", group = grpV)
+colMit      = input.color(color.new(color.gray, 90), "Color FVG mitigado", group = grpV)
+showCE      = input.bool(true, "Mostrar línea 50% (CE)", group = grpV)
+showBorder  = input.bool(false, "Mostrar borde", group = grpV)
+
+// --------------------------------------------------------------- Tipos ------
+type FVG
+    box   b
+    line  ce
+    float top
+    float bot
+    bool  bull
+    bool  active
+    bool  touched = false
+    int   touchBar = na
+    bool  done = false     // ya dio señal o quedó invalidado
+
+// ----------------------------------------------- Detección en velas de 5m --
+// Se usan valores con [1] + lookahead_on = solo velas ya cerradas (sin repintado).
+detect() =>
+    gap  = minTicks * syminfo.mintick
+    bull = low[1] > high[3] and (low[1] - high[3]) >= gap
+    bear = high[1] < low[3] and (low[3] - high[1]) >= gap
+    // [es alcista, es bajista, top alcista, bot alcista, top bajista, bot bajista, tiempo vela 1, tiempo vela 3]
+    [bull, bear, low[1], high[3], low[3], high[1], time[3], time[1]]
+
+[isBull, isBear, bullTop, bullBot, bearTop, bearBot, t1, t3] =
+     request.security(syminfo.tickerid, tf, detect(), lookahead = barmerge.lookahead_on)
+
+newHtfBar = t3 != t3[1] and not na(t3)
+
+// ----------------------------------------------------------------- State ----
+var array<FVG> fvgs = array.new<FVG>()
+
+addFvg(bool bull, float top, float bot, int startT) =>
+    col = bull ? colBull : colBear
+    bx  = box.new(startT, top, time_close, bot, xloc = xloc.bar_time, bgcolor = col,
+         border_color = showBorder ? color.new(col, 0) : color(na), border_width = showBorder ? 1 : 0)
+    ln  = showCE ? line.new(startT, (top + bot) / 2, time_close, (top + bot) / 2, xloc.bar_time,
+         color = color.new(col, 30), style = line.style_dashed, width = 1) : na
+    fvgs.push(FVG.new(bx, ln, top, bot, bull, true))
+    // Limitar la cantidad de FVG
+    while fvgs.size() > maxFvg
+        old = fvgs.shift()
+        old.b.delete()
+        old.ce.delete()
+
+if newHtfBar
+    if showBull and isBull
+        addFvg(true, bullTop, bullBot, t1)
+    if showBear and isBear
+        addFvg(false, bearTop, bearBot, t1)
+
+// ---------------------------------------- Señales / extender / mitigar -----
+inEntrySess = not useSess or not na(time(timeframe.period, entrySess, "America/New_York"))
+
+longSig  = false
+shortSig = false
+slLong   = float(na)
+slShort  = float(na)
+
+if fvgs.size() > 0
+    for i = fvgs.size() - 1 to 0
+        f = fvgs.get(i)
+        mid = (f.top + f.bot) / 2
+
+        // ---- Señal de entrada (se evalúa antes de mitigar) ----
+        if showSig and not f.done
+            // 1) El precio regresa a la zona
+            if not f.touched and (f.bull ? low <= f.top : high >= f.bot)
+                f.touched  := true
+                f.touchBar := bar_index
+            if f.touched and barstate.isconfirmed
+                // 2) Invalidado si cierra al otro lado del FVG
+                invalid = f.bull ? close < f.bot : close > f.top
+                // 3) Confirmación
+                conf = confMode == "Cierre fuera de la zona" ?
+                     (f.bull ? close > f.top : close < f.bot) :
+                     (f.bull ? close > open and close > mid : close < open and close < mid)
+                if invalid
+                    f.done := true
+                else if conf and inEntrySess
+                    f.done := true
+                    if f.bull and not longSig
+                        longSig := true
+                        slLong  := f.bot - slBuffer * syminfo.mintick
+                    else if not f.bull and not shortSig
+                        shortSig := true
+                        slShort  := f.top + slBuffer * syminfo.mintick
+                else if bar_index - f.touchBar >= maxWait
+                    f.done := true
+
+        // ---- Extender / mitigar el dibujo ----
+        if f.active
+            level = mitMode == "Toca la zona" ? (f.bull ? f.top : f.bot) :
+                 mitMode == "Llega al 50% (CE)" ? mid : (f.bull ? f.bot : f.top)
+            mitigated = f.bull ? low <= level : high >= level
+            if mitigated
+                f.active := false
+                if hideMit
+                    f.b.delete()
+                    f.ce.delete()
+                else
+                    f.b.set_right(time_close)
+                    f.b.set_bgcolor(colMit)
+                    f.b.set_border_color(color(na))
+                    f.ce.set_x2(time_close)
+                    f.ce.set_color(colMit)
+            else
+                f.b.set_right(time_close)
+                f.ce.set_x2(time_close)
+
+        // Quitar del arreglo cuando ya no sirve para nada
+        if hideMit and not f.active and (f.done or not showSig)
+            fvgs.remove(i)
+
+// ------------------------------------------------- Dibujar la señal --------
+drawSignal(bool isLong, float sl) =>
+    entry = close
+    risk  = math.abs(entry - sl)
+    tp    = isLong ? entry + risk * rr : entry - risk * rr
+    col   = isLong ? colLong : colShort
+    txt   = (isLong ? "LONG" : "SHORT") + "\nE: " + str.tostring(entry, format.mintick) +
+         "\nSL: " + str.tostring(sl, format.mintick) + "\nTP: " + str.tostring(tp, format.mintick)
+    label.new(bar_index, isLong ? low : high, txt, color = col, textcolor = color.black, size = size.small,
+         style = isLong ? label.style_label_up : label.style_label_down,
+         yloc = isLong ? yloc.belowbar : yloc.abovebar)
+    if showSLTP
+        line.new(bar_index, sl, bar_index + 10, sl, color = color.red, width = 1)
+        line.new(bar_index, tp, bar_index + 10, tp, color = color.green, width = 1)
+        line.new(bar_index, entry, bar_index + 10, entry, color = color.gray, style = line.style_dotted, width = 1)
+    alert((isLong ? "LONG" : "SHORT") + " FVG " + syminfo.ticker + " | E: " + str.tostring(entry, format.mintick) +
+         " SL: " + str.tostring(sl, format.mintick) + " TP: " + str.tostring(tp, format.mintick),
+         alert.freq_once_per_bar_close)
+    tp
+
+if longSig
+    drawSignal(true, slLong)
+if shortSig
+    drawSignal(false, slShort)
+
+// ------------------------------------------------------------ Operaciones --
+if strategy.position_size == 0
+    if longSig
+        tpL = close + (close - slLong) * rr
+        strategy.entry("LONG", strategy.long)
+        strategy.exit("Salida LONG", "LONG", stop = slLong, limit = tpL)
+    else if shortSig
+        tpS = close - (slShort - close) * rr
+        strategy.entry("SHORT", strategy.short)
+        strategy.exit("Salida SHORT", "SHORT", stop = slShort, limit = tpS)
+
+if flatEOD and useSess and not inEntrySess and strategy.position_size != 0
+    strategy.close_all(comment = "Fin de horario")
+
+// --------------------------------------------------------------- Alertas ----
+alertcondition(newHtfBar and isBull and showBull, "Nuevo FVG alcista", "Nuevo FVG alcista en 5m")
+alertcondition(newHtfBar and isBear and showBear, "Nuevo FVG bajista", "Nuevo FVG bajista en 5m")
+alertcondition(longSig,  "Entrada LONG en FVG",  "Señal LONG: el precio respetó un FVG alcista")
+alertcondition(shortSig, "Entrada SHORT en FVG", "Señal SHORT: el precio respetó un FVG bajista")
+
+// Aviso si la temporalidad del gráfico es mayor que la de los FVG
+if barstate.islast and timeframe.in_seconds() > timeframe.in_seconds(tf)
+    var label warn = label.new(bar_index, high, "FVG: usa un gráfico de " + tf + "m o menor",
+         color = color.orange, textcolor = color.white, style = label.style_label_down)
