@@ -1,0 +1,113 @@
+//@version=6
+// ============================================================================
+//  Fair Value Gaps (FVG) - velas de 5 minutos
+//  - Detecta FVG alcistas y bajistas en velas de 5 min (temporalidad configurable).
+//  - Funciona en gráficos de 5m o menores (1m, 2m, 3m...): los FVG siempre se
+//    calculan con velas de 5 min ya cerradas, así que no repinta.
+//  - FVG alcista: low de la vela 3 > high de la vela 1.
+//  - FVG bajista: high de la vela 3 < low de la vela 1.
+//  - Las zonas se extienden hacia la derecha hasta que el precio las mitiga.
+// ============================================================================
+indicator("FVG 5 min", shorttitle = "FVG 5m", overlay = true, max_boxes_count = 500, max_lines_count = 500)
+
+// ---------------------------------------------------------------- Inputs ----
+grpD = "Detección"
+tf          = input.timeframe("5", "Temporalidad de las velas", group = grpD)
+minTicks    = input.int(4, "Tamaño mínimo del FVG (ticks)", minval = 0, group = grpD,
+     tooltip = "En NQ 1 tick = 0.25 puntos. 4 ticks = 1 punto.")
+showBull    = input.bool(true, "Mostrar FVG alcistas", group = grpD)
+showBear    = input.bool(true, "Mostrar FVG bajistas", group = grpD)
+maxFvg      = input.int(30, "Máximo de FVG en el gráfico", minval = 1, maxval = 250, group = grpD)
+
+grpM = "Mitigación"
+mitMode     = input.string("Llenado completo", "Se mitiga cuando el precio...",
+     options = ["Toca la zona", "Llega al 50% (CE)", "Llenado completo"], group = grpM)
+hideMit     = input.bool(false, "Borrar FVG mitigados", group = grpM,
+     tooltip = "Si está apagado, el FVG mitigado se queda en el gráfico (más tenue) y deja de extenderse.")
+
+grpV = "Estilo"
+colBull     = input.color(color.new(color.green, 80), "Color FVG alcista", group = grpV)
+colBear     = input.color(color.new(color.red, 80), "Color FVG bajista", group = grpV)
+colMit      = input.color(color.new(color.gray, 90), "Color FVG mitigado", group = grpV)
+showCE      = input.bool(true, "Mostrar línea 50% (CE)", group = grpV)
+showBorder  = input.bool(false, "Mostrar borde", group = grpV)
+
+// --------------------------------------------------------------- Tipos ------
+type FVG
+    box   b
+    line  ce
+    float top
+    float bot
+    bool  bull
+    bool  active
+
+// ----------------------------------------------- Detección en velas de 5m --
+// Se usan valores con [1] + lookahead_on = solo velas ya cerradas (sin repintado).
+detect() =>
+    gap  = minTicks * syminfo.mintick
+    bull = low[1] > high[3] and (low[1] - high[3]) >= gap
+    bear = high[1] < low[3] and (low[3] - high[1]) >= gap
+    // [es alcista, es bajista, top alcista, bot alcista, top bajista, bot bajista, tiempo vela 1, tiempo vela 3]
+    [bull, bear, low[1], high[3], low[3], high[1], time[3], time[1]]
+
+[isBull, isBear, bullTop, bullBot, bearTop, bearBot, t1, t3] =
+     request.security(syminfo.tickerid, tf, detect(), lookahead = barmerge.lookahead_on)
+
+newHtfBar = t3 != t3[1] and not na(t3)
+
+// ----------------------------------------------------------------- State ----
+var array<FVG> fvgs = array.new<FVG>()
+
+addFvg(bool bull, float top, float bot, int startT) =>
+    col = bull ? colBull : colBear
+    bx  = box.new(startT, top, time_close, bot, xloc = xloc.bar_time, bgcolor = col,
+         border_color = showBorder ? color.new(col, 0) : color(na), border_width = showBorder ? 1 : 0)
+    ln  = showCE ? line.new(startT, (top + bot) / 2, time_close, (top + bot) / 2, xloc.bar_time,
+         color = color.new(col, 30), style = line.style_dashed, width = 1) : na
+    fvgs.push(FVG.new(bx, ln, top, bot, bull, true))
+    // Limitar la cantidad de FVG
+    while fvgs.size() > maxFvg
+        old = fvgs.shift()
+        old.b.delete()
+        old.ce.delete()
+
+if newHtfBar
+    if showBull and isBull
+        addFvg(true, bullTop, bullBot, t1)
+    if showBear and isBear
+        addFvg(false, bearTop, bearBot, t1)
+
+// ------------------------------------------------ Extender / mitigar -------
+if fvgs.size() > 0
+    for i = fvgs.size() - 1 to 0
+        f = fvgs.get(i)
+        if f.active
+            mid = (f.top + f.bot) / 2
+            level = mitMode == "Toca la zona" ? (f.bull ? f.top : f.bot) :
+                 mitMode == "Llega al 50% (CE)" ? mid : (f.bull ? f.bot : f.top)
+            mitigated = f.bull ? low <= level : high >= level
+            // No mitigar en la misma vela en que se creó
+            if mitigated and time_close > f.b.get_left() and not newHtfBar
+                f.active := false
+                if hideMit
+                    f.b.delete()
+                    f.ce.delete()
+                    fvgs.remove(i)
+                else
+                    f.b.set_right(time_close)
+                    f.b.set_bgcolor(colMit)
+                    f.b.set_border_color(color(na))
+                    f.ce.set_x2(time_close)
+                    f.ce.set_color(colMit)
+            else
+                f.b.set_right(time_close)
+                f.ce.set_x2(time_close)
+
+// --------------------------------------------------------------- Alertas ----
+alertcondition(newHtfBar and isBull and showBull, "Nuevo FVG alcista", "Nuevo FVG alcista en 5m")
+alertcondition(newHtfBar and isBear and showBear, "Nuevo FVG bajista", "Nuevo FVG bajista en 5m")
+
+// Aviso si la temporalidad del gráfico es mayor que la de los FVG
+if barstate.islast and timeframe.in_seconds() > timeframe.in_seconds(tf)
+    var label warn = label.new(bar_index, high, "FVG: usa un gráfico de " + tf + "m o menor",
+         color = color.orange, textcolor = color.white, style = label.style_label_down)
