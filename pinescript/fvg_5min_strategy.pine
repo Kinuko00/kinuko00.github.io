@@ -39,7 +39,7 @@ hideMit     = input.bool(false, "Borrar FVG mitigados", group = grpM,
      tooltip = "Si está apagado, el FVG mitigado se queda en el gráfico (más tenue) y deja de extenderse.")
 
 grpE = "Señal de entrada"
-showSig     = input.bool(true, "Mostrar señales de entrada", group = grpE)
+showSig     = input.bool(true, "Activar señales de entrada", group = grpE)
 confMode    = input.string("Cierre fuera de la zona", "Confirmación",
      options = ["Cierre fuera de la zona", "Vela de rechazo (cierre sobre/bajo 50%)"], group = grpE,
      tooltip = "LONG: el precio entra al FVG alcista y la vela cierra por encima del FVG (o vela alcista que cierra sobre el 50%). SHORT: al revés en un FVG bajista.")
@@ -210,11 +210,8 @@ if strategy.position_size == 0
 if flatEOD and useSess and not inEntrySess and strategy.position_size != 0
     strategy.close_all(comment = "Fin de horario")
 
-// --------------------------------------------------------------- Alertas ----
-alertcondition(newHtfBar and isBull and showBull, "Nuevo FVG alcista", "Nuevo FVG alcista en 5m")
-alertcondition(newHtfBar and isBear and showBear, "Nuevo FVG bajista", "Nuevo FVG bajista en 5m")
-alertcondition(longSig,  "Entrada LONG en FVG",  "Señal LONG: el precio respetó un FVG alcista")
-alertcondition(shortSig, "Entrada SHORT en FVG", "Señal SHORT: el precio respetó un FVG bajista")
+// Alertas: en estrategias usar "Cualquier llamada de la función alert()"
+// (manda LONG/SHORT con entrada, SL y TP).
 
 // Aviso si la temporalidad del gráfico es mayor que la de los FVG
 if barstate.islast and timeframe.in_seconds() > timeframe.in_seconds(tf)
