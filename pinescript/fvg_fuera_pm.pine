@@ -1,0 +1,151 @@
+//@version=6
+// ============================================================================
+//  FVG fuera del rango Pre-Market (PMH / PML) - NQ
+//  - Calcula el PM High y PM Low de 4:00 a 9:00 AM (hora de Nueva York).
+//  - Después de las 9:00 solo marca los FVG de 5 min que:
+//      * crucen el PMH o el PML (la zona toca o atraviesa la línea), o
+//      * estén completamente por encima del PMH o por debajo del PML.
+//  - Los FVG que quedan totalmente dentro del rango PM NO se marcan.
+//  - Usar en gráficos de 5m o menores. No repinta.
+// ============================================================================
+indicator("FVG fuera del PMH/PML", shorttitle = "FVG PM", overlay = true,
+     max_boxes_count = 500, max_lines_count = 500, max_labels_count = 500)
+
+// ---------------------------------------------------------------- Inputs ----
+grpP = "Rango Pre-Market"
+pmSess    = input.session("0400-0900", "Rango PM (hora NY)", group = grpP)
+fvgSess   = input.session("0900-1600", "Buscar FVG en este horario (hora NY)", group = grpP)
+showPM    = input.bool(true, "Dibujar líneas PMH / PML", group = grpP)
+colPMH    = input.color(color.new(color.teal, 0), "Color PMH", group = grpP)
+colPML    = input.color(color.new(color.red, 0), "Color PML", group = grpP)
+
+grpF = "FVG"
+tf        = input.timeframe("5", "Temporalidad de las velas", group = grpF)
+minTicks  = input.int(4, "Tamaño mínimo del FVG (ticks)", minval = 0, group = grpF,
+     tooltip = "En NQ 1 tick = 0.25 puntos. 4 ticks = 1 punto.")
+mitMode   = input.string("Llenado completo", "Se mitiga cuando el precio...",
+     options = ["Toca la zona", "Llega al 50% (CE)", "Llenado completo"], group = grpF)
+hideMit   = input.bool(false, "Borrar FVG mitigados", group = grpF)
+maxFvg    = input.int(30, "Máximo de FVG en el gráfico", minval = 1, maxval = 250, group = grpF)
+
+grpV = "Estilo"
+colBull   = input.color(color.new(color.green, 75), "FVG alcista", group = grpV)
+colBear   = input.color(color.new(color.red, 75), "FVG bajista", group = grpV)
+colMit    = input.color(color.new(color.gray, 90), "FVG mitigado", group = grpV)
+showCE    = input.bool(true, "Línea 50% (CE)", group = grpV)
+
+TZ = "America/New_York"
+
+// ------------------------------------------------------- Rango PM (4-9) ----
+inPM    = not na(time(timeframe.period, pmSess, TZ))
+pmStart = inPM and not inPM[1]
+pmEnd   = not inPM and inPM[1]
+inFvgWindow = not na(time(timeframe.period, fvgSess, TZ))
+
+var float pmH     = na
+var float pmL     = na
+var bool  pmReady = false
+var int   pmEndT  = na
+var line  hLine   = na
+var line  lLine   = na
+
+if pmStart
+    pmH     := high
+    pmL     := low
+    pmReady := false
+else if inPM
+    pmH := math.max(pmH, high)
+    pmL := math.min(pmL, low)
+
+if pmEnd and not na(pmH)
+    pmReady := true
+    pmEndT  := time
+    if showPM
+        endT = timestamp(TZ, year(time, TZ), month(time, TZ), dayofmonth(time, TZ), 16, 0)
+        startT = timestamp(TZ, year(time, TZ), month(time, TZ), dayofmonth(time, TZ), 4, 0)
+        hLine := line.new(startT, pmH, endT, pmH, xloc.bar_time, color = colPMH, width = 2)
+        lLine := line.new(startT, pmL, endT, pmL, xloc.bar_time, color = colPML, width = 2)
+        label.new(endT, pmH, "PMH " + str.tostring(pmH, format.mintick), xloc.bar_time,
+             color = color(na), textcolor = colPMH, style = label.style_label_left, size = size.small)
+        label.new(endT, pmL, "PML " + str.tostring(pmL, format.mintick), xloc.bar_time,
+             color = color(na), textcolor = colPML, style = label.style_label_left, size = size.small)
+
+// --------------------------------------------- Detección FVG en velas 5m ----
+detect() =>
+    gap  = minTicks * syminfo.mintick
+    bull = low[1] > high[3] and (low[1] - high[3]) >= gap
+    bear = high[1] < low[3] and (low[3] - high[1]) >= gap
+    [bull, bear, low[1], high[3], low[3], high[1], time[3], time[1]]
+
+[isBull, isBear, bullTop, bullBot, bearTop, bearBot, t1, t3] =
+     request.security(syminfo.tickerid, tf, detect(), lookahead = barmerge.lookahead_on)
+
+newHtfBar = t3 != t3[1] and not na(t3)
+
+// FVG válido = cruza el PMH/PML o está por fuera del rango PM
+outsidePM(float top, float bot) =>
+    top >= pmH or bot <= pmL
+
+// --------------------------------------------------------------- FVGs ------
+type FVG
+    box   b
+    line  ce
+    float top
+    float bot
+    bool  bull
+    bool  active
+
+var array<FVG> fvgs = array.new<FVG>()
+
+addFvg(bool bull, float top, float bot, int startT) =>
+    col = bull ? colBull : colBear
+    bx  = box.new(startT, top, time_close, bot, xloc = xloc.bar_time, bgcolor = col, border_width = 0)
+    ln  = showCE ? line.new(startT, (top + bot) / 2, time_close, (top + bot) / 2, xloc.bar_time,
+         color = color.new(col, 20), style = line.style_dashed, width = 1) : na
+    fvgs.push(FVG.new(bx, ln, top, bot, bull, true))
+    while fvgs.size() > maxFvg
+        old = fvgs.shift()
+        old.b.delete()
+        old.ce.delete()
+
+// Solo FVG formados por completo después de las 9:00 (vela 1 >= fin del PM)
+canCheck = newHtfBar and pmReady and inFvgWindow and not na(pmEndT) and t1 >= pmEndT
+
+newBull = canCheck and isBull and outsidePM(bullTop, bullBot)
+newBear = canCheck and isBear and outsidePM(bearTop, bearBot)
+
+if newBull
+    addFvg(true, bullTop, bullBot, t1)
+if newBear
+    addFvg(false, bearTop, bearBot, t1)
+
+// -------------------------------------------------- Extender / mitigar -----
+if fvgs.size() > 0
+    for i = fvgs.size() - 1 to 0
+        f = fvgs.get(i)
+        if f.active
+            mid   = (f.top + f.bot) / 2
+            level = mitMode == "Toca la zona" ? (f.bull ? f.top : f.bot) :
+                 mitMode == "Llega al 50% (CE)" ? mid : (f.bull ? f.bot : f.top)
+            if f.bull ? low <= level : high >= level
+                f.active := false
+                if hideMit
+                    f.b.delete()
+                    f.ce.delete()
+                    fvgs.remove(i)
+                else
+                    f.b.set_right(time_close)
+                    f.b.set_bgcolor(colMit)
+                    f.ce.set_x2(time_close)
+                    f.ce.set_color(colMit)
+            else
+                f.b.set_right(time_close)
+                f.ce.set_x2(time_close)
+
+// --------------------------------------------------------------- Alertas ----
+alertcondition(newBull, "FVG alcista fuera del PM", "Nuevo FVG alcista que cruza o está fuera del PMH/PML")
+alertcondition(newBear, "FVG bajista fuera del PM", "Nuevo FVG bajista que cruza o está fuera del PMH/PML")
+
+if barstate.islast and timeframe.in_seconds() > timeframe.in_seconds(tf)
+    var label warn = label.new(bar_index, high, "Usa un gráfico de " + tf + "m o menor",
+         color = color.orange, textcolor = color.white, style = label.style_label_down)
