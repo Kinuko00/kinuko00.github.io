@@ -86,8 +86,7 @@ if fvgs.size() > 0
             level = mitMode == "Toca la zona" ? (f.bull ? f.top : f.bot) :
                  mitMode == "Llega al 50% (CE)" ? mid : (f.bull ? f.bot : f.top)
             mitigated = f.bull ? low <= level : high >= level
-            // No mitigar en la misma vela en que se creó
-            if mitigated and time_close > f.b.get_left() and not newHtfBar
+            if mitigated
                 f.active := false
                 if hideMit
                     f.b.delete()
