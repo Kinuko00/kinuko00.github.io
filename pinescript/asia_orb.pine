@@ -1,0 +1,130 @@
+//@version=6
+// ============================================================================
+//  Asia Session ORB - NQ
+//  - Marca el High y Low de la primera hora de Asia: 6:00 PM a 7:00 PM
+//    (hora de Nueva York, ajusta solo el horario de verano EST/EDT).
+//  - Las líneas se actualizan en vivo durante la primera hora y después
+//    se extienden hasta la hora de corte (por defecto 9:30 AM del día siguiente).
+//  - Alertas de ruptura del ORB High / ORB Low después de las 7:00 PM.
+//  - Usar en temporalidades de 1h o menores.
+// ============================================================================
+indicator("Asia Session ORB (6-7 PM ET)", shorttitle = "Asia ORB", overlay = true,
+     max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
+
+// ---------------------------------------------------------------- Inputs ----
+grpS = "Sesión"
+orbSess   = input.session("1800-1900", "Primera hora de Asia (hora NY)", group = grpS)
+endHour   = input.int(9, "Extender líneas hasta (hora)", minval = 0, maxval = 23, group = grpS,
+     tooltip = "Si la hora es menor que el inicio del ORB, se extiende al día siguiente.")
+endMinute = input.int(30, "Extender líneas hasta (minuto)", minval = 0, maxval = 59, group = grpS)
+maxDays   = input.int(5, "Días a mostrar", minval = 1, maxval = 100, group = grpS)
+
+grpV = "Estilo"
+colHigh    = input.color(color.new(color.orange, 0), "Color ORB High", group = grpV)
+colLow     = input.color(color.new(color.purple, 0), "Color ORB Low", group = grpV)
+showMid    = input.bool(true, "Mostrar nivel medio (50%)", group = grpV)
+colMid     = input.color(color.new(color.gray, 0), "Color medio", group = grpV)
+showBox    = input.bool(true, "Sombrear la primera hora", group = grpV)
+colBox     = input.color(color.new(color.orange, 90), "Color sombreado", group = grpV)
+showLabels = input.bool(true, "Mostrar etiquetas con precio", group = grpV)
+lineWidth  = input.int(2, "Grosor de línea", minval = 1, maxval = 5, group = grpV)
+styleIn    = input.string("Sólida", "Estilo de línea", options = ["Sólida", "Discontinua", "Punteada"], group = grpV)
+
+// --------------------------------------------------------------- Helpers ----
+TZ = "America/New_York"
+lineStyle = styleIn == "Sólida" ? line.style_solid : styleIn == "Discontinua" ? line.style_dashed : line.style_dotted
+
+inOrb    = not na(time(timeframe.period, orbSess, TZ))
+orbStart = inOrb and not inOrb[1]
+
+// ----------------------------------------------------------------- State ----
+var float oH     = na
+var float oL     = na
+var int   startT = na
+var int   endT   = na
+
+var line  hLine = na
+var line  lLine = na
+var line  mLine = na
+var label hLbl  = na
+var label lLbl  = na
+var box   rBox  = na
+
+var array<line>  allLines  = array.new<line>()
+var array<label> allLabels = array.new<label>()
+var array<box>   allBoxes  = array.new<box>()
+
+// --------------------------------------------------------------- Logic ------
+if orbStart
+    oH     := high
+    oL     := low
+    startT := time
+    endT   := timestamp(TZ, year(time, TZ), month(time, TZ), dayofmonth(time, TZ), endHour, endMinute)
+    // La hora de corte (ej. 9:30 AM) es antes de las 6 PM -> día siguiente
+    if endT <= startT
+        endT += 24 * 60 * 60 * 1000
+
+    hLine := line.new(startT, oH, endT, oH, xloc.bar_time, color = colHigh, style = lineStyle, width = lineWidth)
+    lLine := line.new(startT, oL, endT, oL, xloc.bar_time, color = colLow,  style = lineStyle, width = lineWidth)
+    allLines.push(hLine)
+    allLines.push(lLine)
+
+    if showMid
+        mLine := line.new(startT, (oH + oL) / 2, endT, (oH + oL) / 2, xloc.bar_time, color = colMid, style = line.style_dotted, width = 1)
+        allLines.push(mLine)
+    else
+        mLine := na
+
+    if showBox
+        rBox := box.new(startT, oH, time_close, oL, xloc = xloc.bar_time, border_width = 0, bgcolor = colBox)
+        allBoxes.push(rBox)
+    else
+        rBox := na
+
+    if showLabels
+        hLbl := label.new(endT, oH, "Asia ORB High " + str.tostring(oH, format.mintick), xloc.bar_time,
+             color = color(na), style = label.style_label_left, textcolor = colHigh, size = size.small)
+        lLbl := label.new(endT, oL, "Asia ORB Low " + str.tostring(oL, format.mintick), xloc.bar_time,
+             color = color(na), style = label.style_label_left, textcolor = colLow, size = size.small)
+        allLabels.push(hLbl)
+        allLabels.push(lLbl)
+    else
+        hLbl := na
+        lLbl := na
+
+    // Borrar días viejos
+    linesPerDay = showMid ? 3 : 2
+    while allLines.size() > maxDays * linesPerDay
+        allLines.shift().delete()
+    while allLabels.size() > maxDays * 2
+        allLabels.shift().delete()
+    while allBoxes.size() > maxDays
+        allBoxes.shift().delete()
+
+else if inOrb
+    oH := math.max(oH, high)
+    oL := math.min(oL, low)
+    hLine.set_y1(oH), hLine.set_y2(oH)
+    lLine.set_y1(oL), lLine.set_y2(oL)
+    if not na(mLine)
+        mLine.set_y1((oH + oL) / 2), mLine.set_y2((oH + oL) / 2)
+    if not na(rBox)
+        rBox.set_top(oH), rBox.set_bottom(oL), rBox.set_right(time_close)
+    if not na(hLbl)
+        hLbl.set_y(oH), hLbl.set_text("Asia ORB High " + str.tostring(oH, format.mintick))
+        lLbl.set_y(oL), lLbl.set_text("Asia ORB Low " + str.tostring(oL, format.mintick))
+
+// ------------------------------------------------- Data window / Alertas ----
+plot(oH, "Asia ORB High", colHigh, display = display.data_window)
+plot(oL, "Asia ORB Low",  colLow,  display = display.data_window)
+
+afterOrb = not inOrb and not na(oH) and time <= endT
+crossUp  = ta.crossover(close, oH)
+crossDn  = ta.crossunder(close, oL)
+alertcondition(afterOrb and crossUp, "Ruptura Asia ORB High", "NQ rompió el Asia ORB High (6-7 PM ET)")
+alertcondition(afterOrb and crossDn, "Ruptura Asia ORB Low",  "NQ rompió el Asia ORB Low (6-7 PM ET)")
+
+// Aviso si la temporalidad es demasiado grande
+if barstate.islast and timeframe.in_seconds() > 3600
+    var label warn = label.new(bar_index, high, "Asia ORB: usa una temporalidad ≤ 1h",
+         color = color.orange, textcolor = color.white, style = label.style_label_down)
