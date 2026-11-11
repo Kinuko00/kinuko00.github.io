@@ -71,7 +71,7 @@ method run(SessData s, bool inS, bool start, color cH, color cL, bool doBox, col
         s.endT   := timestamp(TZ, year(time, TZ), month(time, TZ), dayofmonth(time, TZ), endHour, endMinute)
         // Si la hora de corte ya pasó (ej. Asia empieza 6 PM), se va al día siguiente
         if s.endT <= s.startT
-            s.endT += 24 * 60 * 60 * 1000
+            s.endT := s.endT + 24 * 60 * 60 * 1000
 
         s.hL := line.new(s.startT, s.h, s.endT, s.h, xloc.bar_time, color = cH, style = lineStyle, width = lineWidth)
         s.lL := line.new(s.startT, s.l, s.endT, s.l, xloc.bar_time, color = cL, style = lineStyle, width = lineWidth)
