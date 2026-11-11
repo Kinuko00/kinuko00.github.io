@@ -1,133 +1,162 @@
 //@version=6
 // ============================================================================
-//  NQ Pre-Market High / Low (4:00 AM - 9:00 AM EST/EDT, hora de Nueva York)
-//  - Marca el máximo y el mínimo del rango 4:00-9:00 ET de cada día.
-//  - Las líneas se actualizan en vivo durante la sesión y se extienden
-//    hasta la hora de corte elegida (por defecto 16:00 ET).
-//  - Usa la zona horaria "America/New_York", así que respeta el horario
-//    de verano automáticamente.
-//  - Recomendado en temporalidades intradía (1m - 1h).
+//  NQ Asia + Pre-Market High / Low (hora de Nueva York)
+//  - Asia:       6:00 PM a 3:00 AM (configurable)
+//  - Pre-Market: 4:00 AM a 9:00 AM
+//  - Las líneas se actualizan en vivo durante cada sesión y se extienden
+//    hasta la hora de corte (por defecto 4:00 PM del día de NY).
+//  - Alertas de ruptura de cada nivel después de que termina su sesión.
+//  - Usar en temporalidades de 1h o menores.
 // ============================================================================
-indicator("NQ Pre-Market High/Low (4-9 AM ET)", shorttitle = "PM H/L", overlay = true,
+indicator("NQ Asia + Pre-Market High/Low", shorttitle = "Asia/PM H/L", overlay = true,
      max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 // ---------------------------------------------------------------- Inputs ----
-grpS = "Sesión"
-sessInput = input.session("0400-0900", "Rango (hora NY)", group = grpS)
-endHour   = input.int(16, "Extender líneas hasta (hora)", minval = 0, maxval = 23, group = grpS)
-endMinute = input.int(0, "Extender líneas hasta (minuto)", minval = 0, maxval = 59, group = grpS)
-alertHour = input.int(9, "Alertas desde (hora)", minval = 0, maxval = 23, group = grpS)
-alertMin  = input.int(30, "Alertas desde (minuto)", minval = 0, maxval = 59, group = grpS)
-maxDays   = input.int(5, "Días a mostrar", minval = 1, maxval = 100, group = grpS)
+grpG = "General"
+endHour   = input.int(16, "Extender líneas hasta (hora)", minval = 0, maxval = 23, group = grpG)
+endMinute = input.int(0, "Extender líneas hasta (minuto)", minval = 0, maxval = 59, group = grpG)
+maxDays   = input.int(5, "Días a mostrar", minval = 1, maxval = 100, group = grpG)
+showMid   = input.bool(false, "Mostrar nivel medio (50%)", group = grpG)
+showLabels = input.bool(true, "Mostrar etiquetas con precio", group = grpG)
+lineWidth = input.int(2, "Grosor de línea", minval = 1, maxval = 5, group = grpG)
+styleIn   = input.string("Sólida", "Estilo de línea", options = ["Sólida", "Discontinua", "Punteada"], group = grpG)
 
-grpV = "Estilo"
-colHigh    = input.color(color.new(color.teal, 0), "Color High", group = grpV)
-colLow     = input.color(color.new(color.red, 0), "Color Low", group = grpV)
-showMid    = input.bool(false, "Mostrar nivel medio (50%)", group = grpV)
-colMid     = input.color(color.new(color.gray, 0), "Color Medio", group = grpV)
-showBox    = input.bool(true, "Sombrear el rango 4-9 AM", group = grpV)
-colBox     = input.color(color.new(color.blue, 90), "Color sombreado", group = grpV)
-showLabels = input.bool(true, "Mostrar etiquetas con precio", group = grpV)
-lineWidth  = input.int(2, "Grosor de línea", minval = 1, maxval = 5, group = grpV)
-styleIn    = input.string("Sólida", "Estilo de línea", options = ["Sólida", "Discontinua", "Punteada"], group = grpV)
+grpA = "Asia"
+showAsia  = input.bool(true, "Mostrar Asia High/Low", group = grpA)
+asiaSess  = input.session("1800-0300", "Sesión Asia (hora NY)", group = grpA)
+colAsiaH  = input.color(color.new(color.orange, 0), "Color Asia High", group = grpA)
+colAsiaL  = input.color(color.new(color.purple, 0), "Color Asia Low", group = grpA)
+boxAsia   = input.bool(true, "Sombrear sesión Asia", group = grpA)
+colAsiaBx = input.color(color.new(color.orange, 92), "Color sombreado Asia", group = grpA)
+
+grpP = "Pre-Market"
+showPM    = input.bool(true, "Mostrar PM High/Low", group = grpP)
+pmSess    = input.session("0400-0900", "Sesión PM (hora NY)", group = grpP)
+colPmH    = input.color(color.new(color.teal, 0), "Color PM High", group = grpP)
+colPmL    = input.color(color.new(color.red, 0), "Color PM Low", group = grpP)
+boxPM     = input.bool(true, "Sombrear sesión PM", group = grpP)
+colPmBx   = input.color(color.new(color.blue, 90), "Color sombreado PM", group = grpP)
+
+colMid    = input.color(color.new(color.gray, 0), "Color nivel medio", group = grpG)
 
 // --------------------------------------------------------------- Helpers ----
 TZ = "America/New_York"
 lineStyle = styleIn == "Sólida" ? line.style_solid : styleIn == "Discontinua" ? line.style_dashed : line.style_dotted
 
-inSess    = not na(time(timeframe.period, sessInput, TZ))
-sessStart = inSess and not inSess[1]
+type SessData
+    string name
+    float  h      = na
+    float  l      = na
+    int    startT = na
+    int    endT   = na
+    line   hL     = na
+    line   lL     = na
+    line   mL     = na
+    label  hLb    = na
+    label  lLb    = na
+    box    bx     = na
+    array<line>  lines
+    array<label> labels
+    array<box>   boxes
+
+newSess(string name) =>
+    SessData.new(name, lines = array.new<line>(), labels = array.new<label>(), boxes = array.new<box>())
+
+// Actualiza una sesión: crea los dibujos al inicio y los ajusta mientras dura
+method run(SessData s, bool inS, bool start, color cH, color cL, bool doBox, color cBox) =>
+    if start
+        s.h      := high
+        s.l      := low
+        s.startT := time
+        s.endT   := timestamp(TZ, year(time, TZ), month(time, TZ), dayofmonth(time, TZ), endHour, endMinute)
+        // Si la hora de corte ya pasó (ej. Asia empieza 6 PM), se va al día siguiente
+        if s.endT <= s.startT
+            s.endT += 24 * 60 * 60 * 1000
+
+        s.hL := line.new(s.startT, s.h, s.endT, s.h, xloc.bar_time, color = cH, style = lineStyle, width = lineWidth)
+        s.lL := line.new(s.startT, s.l, s.endT, s.l, xloc.bar_time, color = cL, style = lineStyle, width = lineWidth)
+        s.lines.push(s.hL)
+        s.lines.push(s.lL)
+
+        if showMid
+            s.mL := line.new(s.startT, (s.h + s.l) / 2, s.endT, (s.h + s.l) / 2, xloc.bar_time, color = colMid, style = line.style_dotted, width = 1)
+            s.lines.push(s.mL)
+        else
+            s.mL := na
+
+        if doBox
+            s.bx := box.new(s.startT, s.h, time_close, s.l, xloc = xloc.bar_time, border_width = 0, bgcolor = cBox)
+            s.boxes.push(s.bx)
+        else
+            s.bx := na
+
+        if showLabels
+            s.hLb := label.new(s.endT, s.h, s.name + " High " + str.tostring(s.h, format.mintick), xloc.bar_time,
+                 color = color(na), style = label.style_label_left, textcolor = cH, size = size.small)
+            s.lLb := label.new(s.endT, s.l, s.name + " Low " + str.tostring(s.l, format.mintick), xloc.bar_time,
+                 color = color(na), style = label.style_label_left, textcolor = cL, size = size.small)
+            s.labels.push(s.hLb)
+            s.labels.push(s.lLb)
+        else
+            s.hLb := na
+            s.lLb := na
+
+        // Borrar días viejos
+        linesPerDay = showMid ? 3 : 2
+        while s.lines.size() > maxDays * linesPerDay
+            s.lines.shift().delete()
+        while s.labels.size() > maxDays * 2
+            s.labels.shift().delete()
+        while s.boxes.size() > maxDays
+            s.boxes.shift().delete()
+
+    else if inS and not na(s.h)
+        s.h := math.max(s.h, high)
+        s.l := math.min(s.l, low)
+        s.hL.set_y1(s.h), s.hL.set_y2(s.h)
+        s.lL.set_y1(s.l), s.lL.set_y2(s.l)
+        if not na(s.mL)
+            s.mL.set_y1((s.h + s.l) / 2), s.mL.set_y2((s.h + s.l) / 2)
+        if not na(s.bx)
+            s.bx.set_top(s.h), s.bx.set_bottom(s.l), s.bx.set_right(time_close)
+        if not na(s.hLb)
+            s.hLb.set_y(s.h), s.hLb.set_text(s.name + " High " + str.tostring(s.h, format.mintick))
+            s.lLb.set_y(s.l), s.lLb.set_text(s.name + " Low " + str.tostring(s.l, format.mintick))
+    s
 
 // ----------------------------------------------------------------- State ----
-var float sH     = na
-var float sL     = na
-var int   startT = na
-var int   endT   = na
-var int   alertT = na
+var SessData asia = newSess("Asia")
+var SessData pm   = newSess("PM")
 
-var line  hLine = na
-var line  lLine = na
-var line  mLine = na
-var label hLbl  = na
-var label lLbl  = na
-var box   rBox  = na
+inAsia    = not na(time(timeframe.period, asiaSess, TZ))
+asiaStart = inAsia and not inAsia[1]
+inPM      = not na(time(timeframe.period, pmSess, TZ))
+pmStart   = inPM and not inPM[1]
 
-var array<line>  allLines  = array.new<line>()
-var array<label> allLabels = array.new<label>()
-var array<box>   allBoxes  = array.new<box>()
-
-// --------------------------------------------------------------- Logic ------
-if sessStart
-    sH     := high
-    sL     := low
-    startT := time
-    endT   := timestamp(TZ, year(time, TZ), month(time, TZ), dayofmonth(time, TZ), endHour, endMinute)
-    // Si la hora de corte es antes del inicio, se extiende al día siguiente
-    if endT <= startT
-        endT += 24 * 60 * 60 * 1000
-    alertT := timestamp(TZ, year(time, TZ), month(time, TZ), dayofmonth(time, TZ), alertHour, alertMin)
-
-    hLine := line.new(startT, sH, endT, sH, xloc.bar_time, color = colHigh, style = lineStyle, width = lineWidth)
-    lLine := line.new(startT, sL, endT, sL, xloc.bar_time, color = colLow,  style = lineStyle, width = lineWidth)
-    allLines.push(hLine)
-    allLines.push(lLine)
-
-    if showMid
-        mLine := line.new(startT, (sH + sL) / 2, endT, (sH + sL) / 2, xloc.bar_time, color = colMid, style = line.style_dotted, width = 1)
-        allLines.push(mLine)
-    else
-        mLine := na
-
-    if showBox
-        rBox := box.new(startT, sH, time_close, sL, xloc = xloc.bar_time, border_width = 0, bgcolor = colBox)
-        allBoxes.push(rBox)
-    else
-        rBox := na
-
-    if showLabels
-        hLbl := label.new(endT, sH, "PM High " + str.tostring(sH, format.mintick), xloc.bar_time,
-             color = color(na), style = label.style_label_left, textcolor = colHigh, size = size.small)
-        lLbl := label.new(endT, sL, "PM Low " + str.tostring(sL, format.mintick), xloc.bar_time,
-             color = color(na), style = label.style_label_left, textcolor = colLow, size = size.small)
-        allLabels.push(hLbl)
-        allLabels.push(lLbl)
-    else
-        hLbl := na
-        lLbl := na
-
-    // Limpiar días viejos
-    linesPerDay = showMid ? 3 : 2
-    while allLines.size() > maxDays * linesPerDay
-        allLines.shift().delete()
-    while allLabels.size() > maxDays * 2
-        allLabels.shift().delete()
-    while allBoxes.size() > maxDays
-        allBoxes.shift().delete()
-
-else if inSess
-    sH := math.max(sH, high)
-    sL := math.min(sL, low)
-    hLine.set_y1(sH), hLine.set_y2(sH)
-    lLine.set_y1(sL), lLine.set_y2(sL)
-    if not na(mLine)
-        mLine.set_y1((sH + sL) / 2), mLine.set_y2((sH + sL) / 2)
-    if not na(rBox)
-        rBox.set_top(sH), rBox.set_bottom(sL), rBox.set_right(time_close)
-    if not na(hLbl)
-        hLbl.set_y(sH), hLbl.set_text("PM High " + str.tostring(sH, format.mintick))
-        lLbl.set_y(sL), lLbl.set_text("PM Low " + str.tostring(sL, format.mintick))
+if showAsia
+    asia.run(inAsia, asiaStart, colAsiaH, colAsiaL, boxAsia, colAsiaBx)
+if showPM
+    pm.run(inPM, pmStart, colPmH, colPmL, boxPM, colPmBx)
 
 // ------------------------------------------------- Data window / Alertas ----
-plot(sH, "PM High", colHigh, display = display.data_window)
-plot(sL, "PM Low",  colLow,  display = display.data_window)
+plot(asia.h, "Asia High", colAsiaH, display = display.data_window)
+plot(asia.l, "Asia Low",  colAsiaL, display = display.data_window)
+plot(pm.h,   "PM High",   colPmH,   display = display.data_window)
+plot(pm.l,   "PM Low",    colPmL,   display = display.data_window)
 
-// Alertas activas solo desde la hora elegida (9:30 ET por defecto) hasta el corte
-afterSess = not inSess and not na(sH) and time >= alertT and time <= endT
-crossUp   = ta.crossover(close, sH)
-crossDn   = ta.crossunder(close, sL)
-alertcondition(afterSess and crossUp,  "Ruptura PM High", "NQ rompió el PM High (4-9 AM ET)")
-alertcondition(afterSess and crossDn, "Ruptura PM Low",  "NQ rompió el PM Low (4-9 AM ET)")
+afterAsia = showAsia and not inAsia and not na(asia.h) and time <= asia.endT
+afterPM   = showPM and not inPM and not na(pm.h) and time <= pm.endT
 
-// Aviso si la temporalidad es demasiado grande
+asiaUp = ta.crossover(close, asia.h)
+asiaDn = ta.crossunder(close, asia.l)
+pmUp   = ta.crossover(close, pm.h)
+pmDn   = ta.crossunder(close, pm.l)
+
+alertcondition(afterAsia and asiaUp, "Ruptura Asia High", "NQ rompió el Asia High")
+alertcondition(afterAsia and asiaDn, "Ruptura Asia Low",  "NQ rompió el Asia Low")
+alertcondition(afterPM and pmUp,     "Ruptura PM High",   "NQ rompió el PM High (4-9 AM ET)")
+alertcondition(afterPM and pmDn,     "Ruptura PM Low",    "NQ rompió el PM Low (4-9 AM ET)")
+
 if barstate.islast and timeframe.in_seconds() > 3600
-    var label warn = label.new(bar_index, high, "PM H/L: usa una temporalidad ≤ 1h", color = color.orange, textcolor = color.white, style = label.style_label_down)
+    var label warn = label.new(bar_index, high, "Asia/PM H/L: usa una temporalidad ≤ 1h",
+         color = color.orange, textcolor = color.white, style = label.style_label_down)
