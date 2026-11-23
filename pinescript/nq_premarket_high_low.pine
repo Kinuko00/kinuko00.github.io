@@ -1,7 +1,8 @@
 //@version=6
 // ============================================================================
 //  NQ PDH/PDL + Asia + Pre-Market High / Low (hora de Nueva York)
-//  - PDH / PDL:  High y Low del día anterior (línea continua)
+//  - PDH / PDL:  High y Low de la sesión de NY del día anterior
+//                (9:30 AM - 4:00 PM, línea continua)
 //  - Asia:       6:00 PM a 3:00 AM (configurable, línea discontinua)
 //  - Pre-Market: 4:00 AM a 9:00 AM (línea discontinua)
 //  - Las líneas se actualizan en vivo durante cada sesión y se extienden
@@ -24,8 +25,9 @@ styleIn   = input.string("Discontinua", "Estilo de línea Asia / PM", options = 
 
 grpD = "Día anterior (PDH / PDL)"
 showPD    = input.bool(true, "Mostrar PDH / PDL", group = grpD)
-pdSource  = input.string("Día completo (6 PM - 5 PM)", "Calcular con",
-     options = ["Día completo (6 PM - 5 PM)", "Solo RTH (9:30 AM - 4 PM)"], group = grpD)
+pdSource  = input.string("Sesión NY", "Calcular con",
+     options = ["Sesión NY", "Día completo (6 PM - 5 PM)"], group = grpD)
+nySess    = input.session("0930-1600", "Sesión NY (hora NY)", group = grpD)
 colPDH    = input.color(color.new(color.blue, 0), "Color PDH", group = grpD)
 colPDL    = input.color(color.new(color.fuchsia, 0), "Color PDL", group = grpD)
 pdWidth   = input.int(2, "Grosor de línea PDH / PDL", minval = 1, maxval = 5, group = grpD)
@@ -155,8 +157,8 @@ if showPM
 // Día completo: vela diaria anterior (sin repintado)
 [dH, dL] = request.security(syminfo.tickerid, "D", [high[1], low[1]], lookahead = barmerge.lookahead_on)
 
-// Solo RTH: High / Low de 9:30 a 4:00 PM del día anterior
-inRth = not na(time(timeframe.period, "0930-1600", TZ))
+// Sesión NY: High / Low de 9:30 AM a 4:00 PM del día anterior
+inRth = not na(time(timeframe.period, nySess, TZ))
 var float rH = na
 var float rL = na
 var float lastRH = na
@@ -182,7 +184,7 @@ var array<line>  pdLines  = array.new<line>()
 var array<label> pdLabels = array.new<label>()
 
 if showPD and newDay
-    useRth = pdSource == "Solo RTH (9:30 AM - 4 PM)"
+    useRth = pdSource == "Sesión NY"
     pdh := useRth ? lastRH : dH
     pdl := useRth ? lastRL : dL
     if not na(pdh) and not na(pdl)
@@ -220,8 +222,8 @@ asiaDn = ta.crossunder(close, asia.l)
 pmUp   = ta.crossover(close, pm.h)
 pmDn   = ta.crossunder(close, pm.l)
 
-alertcondition(afterPD and pdUp,     "Ruptura PDH",       "NQ rompió el PDH (High del día anterior)")
-alertcondition(afterPD and pdDn,     "Ruptura PDL",       "NQ rompió el PDL (Low del día anterior)")
+alertcondition(afterPD and pdUp,     "Ruptura PDH",       "NQ rompió el PDH (High de NY del día anterior)")
+alertcondition(afterPD and pdDn,     "Ruptura PDL",       "NQ rompió el PDL (Low de NY del día anterior)")
 alertcondition(afterAsia and asiaUp, "Ruptura Asia High", "NQ rompió el Asia High")
 alertcondition(afterAsia and asiaDn, "Ruptura Asia Low",  "NQ rompió el Asia Low")
 alertcondition(afterPM and pmUp,     "Ruptura PM High",   "NQ rompió el PM High (4-9 AM ET)")
