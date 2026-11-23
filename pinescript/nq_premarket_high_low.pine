@@ -1,14 +1,15 @@
 //@version=6
 // ============================================================================
-//  NQ Asia + Pre-Market High / Low (hora de Nueva York)
-//  - Asia:       6:00 PM a 3:00 AM (configurable)
-//  - Pre-Market: 4:00 AM a 9:00 AM
+//  NQ PDH/PDL + Asia + Pre-Market High / Low (hora de Nueva York)
+//  - PDH / PDL:  High y Low del día anterior (línea continua)
+//  - Asia:       6:00 PM a 3:00 AM (configurable, línea discontinua)
+//  - Pre-Market: 4:00 AM a 9:00 AM (línea discontinua)
 //  - Las líneas se actualizan en vivo durante cada sesión y se extienden
 //    hasta la hora de corte (por defecto 4:00 PM del día de NY).
 //  - Alertas de ruptura de cada nivel después de que termina su sesión.
 //  - Usar en temporalidades de 1h o menores.
 // ============================================================================
-indicator("NQ Asia + Pre-Market High/Low", shorttitle = "Asia/PM H/L", overlay = true,
+indicator("NQ PDH/PDL + Asia + Pre-Market High/Low", shorttitle = "PD/Asia/PM H/L", overlay = true,
      max_lines_count = 500, max_labels_count = 500, max_boxes_count = 500)
 
 // ---------------------------------------------------------------- Inputs ----
@@ -19,7 +20,16 @@ maxDays   = input.int(5, "Días a mostrar", minval = 1, maxval = 100, group = gr
 showMid   = input.bool(false, "Mostrar nivel medio (50%)", group = grpG)
 showLabels = input.bool(true, "Mostrar etiquetas con precio", group = grpG)
 lineWidth = input.int(2, "Grosor de línea", minval = 1, maxval = 5, group = grpG)
-styleIn   = input.string("Sólida", "Estilo de línea", options = ["Sólida", "Discontinua", "Punteada"], group = grpG)
+styleIn   = input.string("Discontinua", "Estilo de línea Asia / PM", options = ["Sólida", "Discontinua", "Punteada"], group = grpG)
+
+grpD = "Día anterior (PDH / PDL)"
+showPD    = input.bool(true, "Mostrar PDH / PDL", group = grpD)
+pdSource  = input.string("Día completo (6 PM - 5 PM)", "Calcular con",
+     options = ["Día completo (6 PM - 5 PM)", "Solo RTH (9:30 AM - 4 PM)"], group = grpD)
+colPDH    = input.color(color.new(color.blue, 0), "Color PDH", group = grpD)
+colPDL    = input.color(color.new(color.fuchsia, 0), "Color PDL", group = grpD)
+pdWidth   = input.int(2, "Grosor de línea PDH / PDL", minval = 1, maxval = 5, group = grpD)
+pdStyleIn = input.string("Sólida", "Estilo de línea PDH / PDL", options = ["Sólida", "Discontinua", "Punteada"], group = grpD)
 
 grpA = "Asia"
 showAsia  = input.bool(true, "Mostrar Asia High/Low", group = grpA)
@@ -41,7 +51,10 @@ colMid    = input.color(color.new(color.gray, 0), "Color nivel medio", group = g
 
 // --------------------------------------------------------------- Helpers ----
 TZ = "America/New_York"
-lineStyle = styleIn == "Sólida" ? line.style_solid : styleIn == "Discontinua" ? line.style_dashed : line.style_dotted
+toStyle(string st) =>
+    st == "Sólida" ? line.style_solid : st == "Discontinua" ? line.style_dashed : line.style_dotted
+lineStyle = toStyle(styleIn)
+pdStyle   = toStyle(pdStyleIn)
 
 type SessData
     string name
@@ -138,25 +151,82 @@ if showAsia
 if showPM
     pm.run(inPM, pmStart, colPmH, colPmL, boxPM, colPmBx)
 
+// ---------------------------------------------------------- PDH / PDL ------
+// Día completo: vela diaria anterior (sin repintado)
+[dH, dL] = request.security(syminfo.tickerid, "D", [high[1], low[1]], lookahead = barmerge.lookahead_on)
+
+// Solo RTH: High / Low de 9:30 a 4:00 PM del día anterior
+inRth = not na(time(timeframe.period, "0930-1600", TZ))
+var float rH = na
+var float rL = na
+var float lastRH = na
+var float lastRL = na
+if inRth and not inRth[1]
+    rH := high
+    rL := low
+else if inRth
+    rH := math.max(rH, high)
+    rL := math.min(rL, low)
+if not inRth and inRth[1]
+    lastRH := rH
+    lastRL := rL
+
+// Nuevo día de trading (en futuros empieza a las 6 PM ET)
+dayT   = time("D")
+newDay = dayT != dayT[1]
+
+var float pdh    = na
+var float pdl    = na
+var int   pdEndT = na
+var array<line>  pdLines  = array.new<line>()
+var array<label> pdLabels = array.new<label>()
+
+if showPD and newDay
+    useRth = pdSource == "Solo RTH (9:30 AM - 4 PM)"
+    pdh := useRth ? lastRH : dH
+    pdl := useRth ? lastRL : dL
+    if not na(pdh) and not na(pdl)
+        pdEndT := timestamp(TZ, year(time, TZ), month(time, TZ), dayofmonth(time, TZ), endHour, endMinute)
+        if pdEndT <= time
+            pdEndT := pdEndT + 24 * 60 * 60 * 1000
+        pdLines.push(line.new(time, pdh, pdEndT, pdh, xloc.bar_time, color = colPDH, style = pdStyle, width = pdWidth))
+        pdLines.push(line.new(time, pdl, pdEndT, pdl, xloc.bar_time, color = colPDL, style = pdStyle, width = pdWidth))
+        if showLabels
+            pdLabels.push(label.new(pdEndT, pdh, "PDH " + str.tostring(pdh, format.mintick), xloc.bar_time,
+                 color = color(na), style = label.style_label_left, textcolor = colPDH, size = size.small))
+            pdLabels.push(label.new(pdEndT, pdl, "PDL " + str.tostring(pdl, format.mintick), xloc.bar_time,
+                 color = color(na), style = label.style_label_left, textcolor = colPDL, size = size.small))
+        while pdLines.size() > maxDays * 2
+            pdLines.shift().delete()
+        while pdLabels.size() > maxDays * 2
+            pdLabels.shift().delete()
+
 // ------------------------------------------------- Data window / Alertas ----
+plot(pdh,    "PDH",       colPDH,   display = display.data_window)
+plot(pdl,    "PDL",       colPDL,   display = display.data_window)
 plot(asia.h, "Asia High", colAsiaH, display = display.data_window)
 plot(asia.l, "Asia Low",  colAsiaL, display = display.data_window)
 plot(pm.h,   "PM High",   colPmH,   display = display.data_window)
 plot(pm.l,   "PM Low",    colPmL,   display = display.data_window)
 
+afterPD   = showPD and not na(pdh) and time <= pdEndT
 afterAsia = showAsia and not inAsia and not na(asia.h) and time <= asia.endT
 afterPM   = showPM and not inPM and not na(pm.h) and time <= pm.endT
 
+pdUp   = ta.crossover(close, pdh)
+pdDn   = ta.crossunder(close, pdl)
 asiaUp = ta.crossover(close, asia.h)
 asiaDn = ta.crossunder(close, asia.l)
 pmUp   = ta.crossover(close, pm.h)
 pmDn   = ta.crossunder(close, pm.l)
 
+alertcondition(afterPD and pdUp,     "Ruptura PDH",       "NQ rompió el PDH (High del día anterior)")
+alertcondition(afterPD and pdDn,     "Ruptura PDL",       "NQ rompió el PDL (Low del día anterior)")
 alertcondition(afterAsia and asiaUp, "Ruptura Asia High", "NQ rompió el Asia High")
 alertcondition(afterAsia and asiaDn, "Ruptura Asia Low",  "NQ rompió el Asia Low")
 alertcondition(afterPM and pmUp,     "Ruptura PM High",   "NQ rompió el PM High (4-9 AM ET)")
 alertcondition(afterPM and pmDn,     "Ruptura PM Low",    "NQ rompió el PM Low (4-9 AM ET)")
 
 if barstate.islast and timeframe.in_seconds() > 3600
-    var label warn = label.new(bar_index, high, "Asia/PM H/L: usa una temporalidad ≤ 1h",
+    var label warn = label.new(bar_index, high, "PD/Asia/PM H/L: usa una temporalidad ≤ 1h",
          color = color.orange, textcolor = color.white, style = label.style_label_down)
