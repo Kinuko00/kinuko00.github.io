@@ -2,7 +2,9 @@
 // ============================================================================
 //  NQ PDH/PDL + Asia + Pre-Market High / Low (hora de Nueva York)
 //  - PDH / PDL:  High y Low de la sesión de NY del día anterior
-//                (9:30 AM - 4:00 PM, línea continua)
+//                (9:30 AM - 4:00 PM, línea continua). Las líneas salen
+//                desde la vela donde se hizo el High / Low y se extienden
+//                durante toda la sesión de hoy.
 //  - Asia:       6:00 PM a 3:00 AM (configurable, línea discontinua)
 //  - Pre-Market: 4:00 AM a 9:00 AM (línea discontinua)
 //  - Las líneas se actualizan en vivo durante cada sesión y se extienden
@@ -155,23 +157,35 @@ if showPM
 
 // ---------------------------------------------------------- PDH / PDL ------
 // Día completo: vela diaria anterior (sin repintado)
-[dH, dL] = request.security(syminfo.tickerid, "D", [high[1], low[1]], lookahead = barmerge.lookahead_on)
+[dH, dL, dT] = request.security(syminfo.tickerid, "D", [high[1], low[1], time[1]], lookahead = barmerge.lookahead_on)
 
 // Sesión NY: High / Low de 9:30 AM a 4:00 PM del día anterior
 inRth = not na(time(timeframe.period, nySess, TZ))
 var float rH = na
 var float rL = na
+var int   rHT = na
+var int   rLT = na
 var float lastRH = na
 var float lastRL = na
+var int   lastRHT = na
+var int   lastRLT = na
 if inRth and not inRth[1]
-    rH := high
-    rL := low
+    rH  := high
+    rL  := low
+    rHT := time
+    rLT := time
 else if inRth
-    rH := math.max(rH, high)
-    rL := math.min(rL, low)
+    if high > rH
+        rH  := high
+        rHT := time
+    if low < rL
+        rL  := low
+        rLT := time
 if not inRth and inRth[1]
-    lastRH := rH
-    lastRL := rL
+    lastRH  := rH
+    lastRL  := rL
+    lastRHT := rHT
+    lastRLT := rLT
 
 // Nuevo día de trading (en futuros empieza a las 6 PM ET)
 dayT   = time("D")
@@ -187,12 +201,16 @@ if showPD and newDay
     useRth = pdSource == "Sesión NY"
     pdh := useRth ? lastRH : dH
     pdl := useRth ? lastRL : dL
+    // Inicio de la línea: vela donde se hizo el High / Low del día anterior
+    pdhT = useRth ? lastRHT : dT
+    pdlT = useRth ? lastRLT : dT
     if not na(pdh) and not na(pdl)
+        // Fin de la línea: hora de corte de la sesión de hoy (4 PM por defecto)
         pdEndT := timestamp(TZ, year(time, TZ), month(time, TZ), dayofmonth(time, TZ), endHour, endMinute)
         if pdEndT <= time
             pdEndT := pdEndT + 24 * 60 * 60 * 1000
-        pdLines.push(line.new(time, pdh, pdEndT, pdh, xloc.bar_time, color = colPDH, style = pdStyle, width = pdWidth))
-        pdLines.push(line.new(time, pdl, pdEndT, pdl, xloc.bar_time, color = colPDL, style = pdStyle, width = pdWidth))
+        pdLines.push(line.new(na(pdhT) ? time : pdhT, pdh, pdEndT, pdh, xloc.bar_time, color = colPDH, style = pdStyle, width = pdWidth))
+        pdLines.push(line.new(na(pdlT) ? time : pdlT, pdl, pdEndT, pdl, xloc.bar_time, color = colPDL, style = pdStyle, width = pdWidth))
         if showLabels
             pdLabels.push(label.new(pdEndT, pdh, "PDH " + str.tostring(pdh, format.mintick), xloc.bar_time,
                  color = color(na), style = label.style_label_left, textcolor = colPDH, size = size.small))
