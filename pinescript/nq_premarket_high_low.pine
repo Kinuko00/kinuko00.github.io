@@ -4,7 +4,7 @@
 //  - PDH / PDL:  High y Low de la sesión de NY del día anterior
 //                (9:30 AM - 4:00 PM, línea continua). Las líneas salen
 //                desde la vela donde se hizo el High / Low y se extienden
-//                durante toda la sesión de hoy.
+//                durante la sesión de hoy hasta las 4:00 PM ET.
 //  - Asia:       6:00 PM a 3:00 AM (configurable, línea discontinua)
 //  - Pre-Market: 4:00 AM a 9:00 AM (línea discontinua)
 //  - Las líneas se actualizan en vivo durante cada sesión y se extienden
@@ -30,6 +30,8 @@ showPD    = input.bool(true, "Mostrar PDH / PDL", group = grpD)
 pdSource  = input.string("Sesión NY", "Calcular con",
      options = ["Sesión NY", "Día completo (6 PM - 5 PM)"], group = grpD)
 nySess    = input.session("0930-1600", "Sesión NY (hora NY)", group = grpD)
+pdEndHour = input.int(16, "Extender PDH / PDL hasta (hora NY)", minval = 0, maxval = 23, group = grpD)
+pdEndMin  = input.int(0, "Extender PDH / PDL hasta (minuto)", minval = 0, maxval = 59, group = grpD)
 colPDH    = input.color(color.new(color.blue, 0), "Color PDH", group = grpD)
 colPDL    = input.color(color.new(color.fuchsia, 0), "Color PDL", group = grpD)
 pdWidth   = input.int(2, "Grosor de línea PDH / PDL", minval = 1, maxval = 5, group = grpD)
@@ -205,8 +207,9 @@ if showPD and newDay
     pdhT = useRth ? lastRHT : dT
     pdlT = useRth ? lastRLT : dT
     if not na(pdh) and not na(pdl)
-        // Fin de la línea: hora de corte de la sesión de hoy (4 PM por defecto)
-        pdEndT := timestamp(TZ, year(time, TZ), month(time, TZ), dayofmonth(time, TZ), endHour, endMinute)
+        // Fin de la línea: 4:00 PM ET del día de trading de hoy
+        // (time_tradingday = fecha del día de trading; la sesión que abre a las 6 PM pertenece al día siguiente)
+        pdEndT := timestamp(TZ, year(time_tradingday, "UTC"), month(time_tradingday, "UTC"), dayofmonth(time_tradingday, "UTC"), pdEndHour, pdEndMin)
         if pdEndT <= time
             pdEndT := pdEndT + 24 * 60 * 60 * 1000
         pdLines.push(line.new(na(pdhT) ? time : pdhT, pdh, pdEndT, pdh, xloc.bar_time, color = colPDH, style = pdStyle, width = pdWidth))
